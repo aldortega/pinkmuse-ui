@@ -1,4 +1,3 @@
-// AuthHero.jsx
 export default function RegisterHero({
   title = "PinkMuse",
   subtitle = "Tu música, tus artistas, tu espacio.",
