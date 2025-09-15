@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,19 +11,48 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import api from "@/lib/axios";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password });
+    setError("");
+    setLoading(true);
+    try {
+      const { data } = await api.post("/login", { correo: email, password });
+      if (data?.token) {
+        localStorage.setItem("authToken", data.token);
+        if (data.user) {
+          try {
+            localStorage.setItem("authUser", JSON.stringify(data.user));
+          } catch {
+            e;
+          }
+        }
+        navigate("/home");
+      } else {
+        setError("Credenciales inválidas o respuesta inesperada.");
+      }
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Error al iniciar sesión.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="w-full lg:w-1/2 h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 py-6 lg:py-8 overflow-hidden box-border bg-pink-100">
+    <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-3 overflow-hidden box-border bg-pink-100">
       <Card className="w-full max-w-md sm:max-w-lg bg-violet-50 border-violet-100 shadow-xl">
         <CardHeader className="space-y-1 pb-6 sm:pb-8">
           <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-gray-700 flex justify-center items-center gap-2">
@@ -37,6 +67,7 @@ export default function LoginForm() {
         </CardHeader>
         <CardContent className="pb-6 sm:pb-8">
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            {error ? <div className="text-red-600 text-sm">{error}</div> : null}
             {/* email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700">
@@ -66,7 +97,7 @@ export default function LoginForm() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="********"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10 bg-gray-100 border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:ring-pink-500 h-11 sm:h-12 text-base"
@@ -109,20 +140,21 @@ export default function LoginForm() {
             {/* botnn */}
             <Button
               type="submit"
-              className="w-full cursor-pointer bg-gradient-to-br from-rose-500 via-red-400 to-red-500 hover:opacity-90 text-white font-medium py-3 sm:py-3.5 px-4 rounded-md transition-colors focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-white"
+              disabled={loading}
+              className="w-full cursor-pointer bg-gradient-to-br from-rose-500 via-red-400 to-red-500 hover:opacity-90 text-white font-medium py-3 sm:py-3.5 px-4 rounded-md transition-colors focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-60"
             >
-              Iniciar Sesión
+              {loading ? "Ingresando..." : "Iniciar Sesión"}
             </Button>
 
             {/* registro */}
             <div className="text-center text-xs sm:text-sm text-gray-600">
               ¿No tenés una cuenta?{" "}
-              <a
-                href="#"
+              <Link
+                to="/register"
                 className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent hover:opacity-90 transition-colors font-semibold"
               >
-                Regístrate
-              </a>
+                Registrate
+              </Link>
             </div>
           </form>
         </CardContent>
