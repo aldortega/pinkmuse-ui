@@ -37,13 +37,13 @@ export default function LoginForm() {
         </CardHeader>
         <CardContent className="pb-6 sm:pb-8">
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-            {/* Email */}
+            {/* email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700">
                 Correo electrónico
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   id="email"
                   type="email"
@@ -62,7 +62,7 @@ export default function LoginForm() {
                 Contraseña
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -75,7 +75,7 @@ export default function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-3 text-gray-400 cursor-pointer hover:text-red-400 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-red-400 transition-colors"
                   aria-label={
                     showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                   }
@@ -89,24 +89,24 @@ export default function LoginForm() {
               </div>
             </div>
 
-            {/* remember + pass */}
+            {/* remember y la pass */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               <label className="flex items-center space-x-2 text-xs sm:text-sm">
                 <input
                   type="checkbox"
-                  className="rounded border-gray-300 bg-gray-100 text-pink-500 focus:ring-pink-500"
+                  className="rounded border-gray-300 bg-gray-100 accent-red-400"
                 />
                 <span className="text-gray-600 cursor-pointer">Recordarme</span>
               </label>
               <a
                 href="#"
-                className="text-xs sm:text-sm font-semibold bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent hover:opacity-80 transition-colors"
+                className="text-xs sm:text-sm font-semibold bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent hover:opacity-90 transition-colors"
               >
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
 
-            {/* Botón */}
+            {/* botnn */}
             <Button
               type="submit"
               className="w-full cursor-pointer bg-gradient-to-br from-rose-500 via-red-400 to-red-500 hover:opacity-90 text-white font-medium py-3 sm:py-3.5 px-4 rounded-md transition-colors focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-white"
@@ -114,12 +114,12 @@ export default function LoginForm() {
               Iniciar Sesión
             </Button>
 
-            {/* Registro */}
+            {/* registro */}
             <div className="text-center text-xs sm:text-sm text-gray-600">
               ¿No tenés una cuenta?{" "}
               <a
                 href="#"
-                className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent hover:opacity-80 transition-colors font-semibold"
+                className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent hover:opacity-90 transition-colors font-semibold"
               >
                 Regístrate
               </a>
