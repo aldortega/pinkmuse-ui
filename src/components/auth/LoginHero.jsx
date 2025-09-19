@@ -25,7 +25,7 @@ export default function LoginHero() {
         <div className="absolute inset-0 z-20 flex flex-col justify-start px-10 text-white">
           <h1 className="text-4xl pt-5 font-bold text-pink-100">PinkMuse</h1>
           <p className="text-xl text-pink-100 font-semibold leading-relaxed">
-            Tu música, tus artistas, tu espacio.
+            Tu música, tus fans, tu espacio.
           </p>
         </div>
       </div>

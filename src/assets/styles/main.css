@@ -139,4 +139,6 @@
 html,
 body {
   height: 100%;
+  overflow: scroll;
+  background-color: rgb(255, 175, 189);
 }

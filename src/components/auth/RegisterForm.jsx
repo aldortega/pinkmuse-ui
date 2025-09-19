@@ -255,7 +255,7 @@ export default function RegisterForm() {
             <div className="text-center text-sm text-gray-600">
               ¿Ya tenes una cuenta?{" "}
               <Link
-                to="/"
+                to="/login"
                 className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent cursor-pointer font-semibold"
               >
                 Inicia sesión

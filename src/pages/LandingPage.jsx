@@ -1,4 +1,6 @@
+import Cta from "@/components/landing/CTA";
 import Features from "@/components/landing/Features";
+import Footer from "@/components/landing/Footer";
 import Hero from "@/components/landing/Hero";
 import NavBar from "@/components/landing/Navbar";
 import Testimonials from "@/components/landing/Testimonials";
@@ -10,6 +12,8 @@ export default function LandingPage() {
       <Hero />
       <Features />
       <Testimonials />
+      <Cta />
+      <Footer />
     </div>
   );
 }
