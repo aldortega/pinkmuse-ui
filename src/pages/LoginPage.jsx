@@ -1,5 +1,5 @@
-import LoginHero from "@/components/LoginHero";
-import LoginForm from "@/components/LoginForm";
+import LoginHero from "@/components/auth/LoginHero";
+import LoginForm from "@/components/auth/LoginForm";
 
 export default function LoginPage() {
   return (

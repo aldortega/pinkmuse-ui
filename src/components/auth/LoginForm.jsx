@@ -53,7 +53,7 @@ export default function LoginForm() {
 
   return (
     <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-3 overflow-hidden box-border bg-pink-100">
-      <Card className="w-full max-w-md sm:max-w-lg bg-violet-50 border-violet-100 shadow-xl">
+      <Card className="w-full max-w-md sm:max-w-lg bg-pink-50 border-pink-100 shadow-xl">
         <CardHeader className="space-y-1 pb-6 sm:pb-8">
           <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-gray-700 flex justify-center items-center gap-2">
             <span>Bienvenido a</span>
@@ -67,7 +67,11 @@ export default function LoginForm() {
         </CardHeader>
         <CardContent className="pb-6 sm:pb-8">
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-            {error ? <div className="text-red-600 text-sm">{error}</div> : null}
+            {error ? (
+              <div className="text-red-600 flex justify-center text-sm">
+                {error}
+              </div>
+            ) : null}
             {/* email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700">
@@ -97,7 +101,7 @@ export default function LoginForm() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="********"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10 bg-gray-100 border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:ring-pink-500 h-11 sm:h-12 text-base"

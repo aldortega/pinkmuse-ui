@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,15 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Eye, EyeOff, Mail, Lock, User, Calendar, Globe } from "lucide-react";
 import api from "@/lib/axios";
+import CountryCombobox from "@/components/ui/CountryCombobox";
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -66,7 +59,6 @@ export default function RegisterForm() {
 
       if (data?.status && data?.status >= 200 && data?.status < 300) {
         setSuccess("Registro exitoso. Ahora podes iniciar sesión.");
-        // Opcional: redirigir al login tras un breve delay
         setTimeout(() => navigate("/"), 800);
       } else {
         setError(data?.message || "Ocurrió un error en el registro.");
@@ -82,31 +74,6 @@ export default function RegisterForm() {
     }
   };
 
-  const nacionalidades = [
-    "Argentina",
-    "Bolivia",
-    "Brasil",
-    "Chile",
-    "Colombia",
-    "Costa Rica",
-    "Cuba",
-    "Ecuador",
-    "El Salvador",
-    "España",
-    "Guatemala",
-    "Honduras",
-    "México",
-    "Nicaragua",
-    "Panamá",
-    "Paraguay",
-    "Perú",
-    "República Dominicana",
-    "Uruguay",
-    "Venezuela",
-    "Estados Unidos",
-    "Otro",
-  ];
-
   return (
     <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-3 overflow-hidden box-border bg-pink-100">
       <Card className="w-full max-w-md sm:max-w-lg bg-violet-50 border-violet-100 shadow-xl">
@@ -121,49 +88,49 @@ export default function RegisterForm() {
             Ingresa tus datos para crear una cuenta
           </CardDescription>
         </CardHeader>
+
         <CardContent className="pb-3">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error ? <div className="text-red-600 text-sm">{error}</div> : null}
-            {success ? (
-              <div className="text-green-600 text-sm">{success}</div>
-            ) : null}
+            {error && <div className="text-red-600 text-sm">{error}</div>}
+            {success && <div className="text-green-600 text-sm">{success}</div>}
+
             {/* Nombre y Apellido */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="nombre" className="text-gray-700">
+                <Label className="text-gray-700" htmlFor="nombre">
                   Nombre
                 </Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                   <Input
                     id="nombre"
                     type="text"
-                    placeholder="Juan"
+                    placeholder="Brenda"
                     value={formData.nombre}
                     onChange={(e) =>
                       handleInputChange("nombre", e.target.value)
                     }
-                    className="pl-10 bg-gray-100 border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:ring-pink-500"
+                    className="pl-10 placeholder:text-gray-400 bg-gray-100 border-gray-300"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="apellido" className="text-gray-700">
+                <Label className="text-gray-700" htmlFor="apellido">
                   Apellido
                 </Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                   <Input
                     id="apellido"
                     type="text"
-                    placeholder="Pérez"
+                    placeholder="Cano"
                     value={formData.apellido}
                     onChange={(e) =>
                       handleInputChange("apellido", e.target.value)
                     }
-                    className="pl-10 bg-gray-100 border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:ring-pink-500"
+                    className="pl-10 bg-gray-100 border-gray-300 placeholder:text-gray-400"
                     required
                   />
                 </div>
@@ -172,20 +139,20 @@ export default function RegisterForm() {
 
             {/* Username */}
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-gray-700">
+              <Label className="text-gray-700" htmlFor="username">
                 Nombre de usuario
               </Label>
               <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                 <Input
                   id="username"
                   type="text"
-                  placeholder="juanperez123"
+                  placeholder="brenda123"
                   value={formData.username}
                   onChange={(e) =>
                     handleInputChange("username", e.target.value)
                   }
-                  className="pl-10 bg-gray-100 border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:ring-pink-500"
+                  className="pl-10 bg-gray-100 border-gray-300 placeholder:text-gray-400"
                   required
                 />
               </div>
@@ -193,82 +160,29 @@ export default function RegisterForm() {
 
             {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700">
+              <Label className="text-gray-700" htmlFor="email">
                 Correo electrónico
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="tu@ejemplo.com"
+                  placeholder="nombre@ejemplo.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="pl-10 bg-gray-100 border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:ring-pink-500"
+                  className="pl-10 bg-gray-100 border-gray-300 placeholder:text-gray-400"
                   required
                 />
               </div>
             </div>
 
-            {/* Nacionalidad y Fecha de Nacimiento */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="nacionalidad" className="text-gray-700">
-                  Nacionalidad
-                </Label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-3 h-4 w-4 text-gray-400 z-10" />
-                  <Select
-                    value={formData.nacionalidad}
-                    onValueChange={(value) =>
-                      handleInputChange("nacionalidad", value)
-                    }
-                  >
-                    <SelectTrigger className="pl-10 bg-gray-100 border-gray-300 text-gray-900 focus:border-pink-500 focus:ring-pink-500">
-                      <SelectValue placeholder="Seleccionar" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-100 border-gray-300">
-                      {nacionalidades.map((pais) => (
-                        <SelectItem
-                          key={pais}
-                          value={pais}
-                          className="text-gray-900 hover:bg-gray-100"
-                        >
-                          {pais}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="fechaNacimiento" className="text-gray-700">
-                  Fecha de nacimiento
-                </Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="fechaNacimiento"
-                    type="date"
-                    value={formData.fechaNacimiento}
-                    onChange={(e) =>
-                      handleInputChange("fechaNacimiento", e.target.value)
-                    }
-                    className="pl-10 bg-gray-100 border-gray-300 text-gray-900 focus:border-pink-500 focus:ring-pink-500"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Password */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700">
+              <Label className="text-gray-700" htmlFor="password">
                 Contraseña
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -277,13 +191,13 @@ export default function RegisterForm() {
                   onChange={(e) =>
                     handleInputChange("password", e.target.value)
                   }
-                  className="pl-10 pr-10 bg-gray-100 border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-pink-500 focus:ring-pink-500"
+                  className="pl-10 pr-10 bg-gray-100 border-gray-300 placeholder:text-gray-400"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-red-400 transition-colors"
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-red-400 cursor-pointer"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />
@@ -294,19 +208,55 @@ export default function RegisterForm() {
               </div>
             </div>
 
+            {/* Nacionalidad + Fecha */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-700" htmlFor="nacionalidad">
+                  Nacionalidad
+                </Label>
+                <div className="relative">
+                  <CountryCombobox
+                    value={formData.nacionalidad}
+                    onChange={(val) => handleInputChange("nacionalidad", val)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-gray-700" htmlFor="fechaNacimiento">
+                  Fecha de nacimiento
+                </Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="fechaNacimiento"
+                    type="date"
+                    value={formData.fechaNacimiento}
+                    onChange={(e) =>
+                      handleInputChange("fechaNacimiento", e.target.value)
+                    }
+                    className="pl-10 bg-gray-100 border-gray-300 cursor-pointer"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
             <Button
               type="submit"
               disabled={loading}
-              className="w-full cursor-pointer bg-gradient-to-br from-rose-500 via-red-400 to-red-500 hover:opacity-90 text-white font-medium py-3 sm:py-3.5 px-4 rounded-md transition-colors focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-white disabled:opacity-60"
+              className="w-full bg-gradient-to-br from-rose-500 via-red-400 to-red-500 text-white cursor-pointer hover:opacity-90"
             >
               {loading ? "Creando..." : "Crear Cuenta"}
             </Button>
+
+            {/* Password */}
 
             <div className="text-center text-sm text-gray-600">
               ¿Ya tenes una cuenta?{" "}
               <Link
                 to="/"
-                className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent hover:opacity-90 transition-colors font-semibold"
+                className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent cursor-pointer font-semibold"
               >
                 Inicia sesión
               </Link>
