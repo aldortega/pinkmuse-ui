@@ -4,6 +4,7 @@ import RegisterPage from "@/pages/RegisterPage";
 import HomePage from "@/pages/Home";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingPage from "@/pages/LandingPage";
+import { EventsManagement } from "./components/eventos/EventManagement";
 
 export default function App() {
   return (
@@ -17,6 +18,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <HomePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <EventsManagement />
             </ProtectedRoute>
           }
         />
