@@ -152,13 +152,13 @@ export function EventsManagement() {
       const validationErrors = responseData?.errors;
       let detailedMessage = null;
       if (validationErrors) {
-        const firstError = Object.values(validationErrors)
-          .flat()
-          .find(Boolean);
+        const firstError = Object.values(validationErrors).flat().find(Boolean);
         detailedMessage = firstError || null;
       }
       const message =
-        detailedMessage || responseData?.message || "No pudimos crear el evento.";
+        detailedMessage ||
+        responseData?.message ||
+        "No pudimos crear el evento.";
       setCreateError(message);
     } finally {
       setIsCreateSubmitting(false);
@@ -214,13 +214,13 @@ export function EventsManagement() {
       const validationErrors = responseData?.errors;
       let detailedMessage = null;
       if (validationErrors) {
-        const firstError = Object.values(validationErrors)
-          .flat()
-          .find(Boolean);
+        const firstError = Object.values(validationErrors).flat().find(Boolean);
         detailedMessage = firstError || null;
       }
       const message =
-        detailedMessage || responseData?.message || "No pudimos actualizar el evento.";
+        detailedMessage ||
+        responseData?.message ||
+        "No pudimos actualizar el evento.";
       setEditError(message);
     } finally {
       setIsEditSubmitting(false);
@@ -267,31 +267,40 @@ export function EventsManagement() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-red-50">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Music className="h-6 w-6 text-primary" />
+          <div className="p-2 bg-gradient-to-br from-rose-500 via-red-400 to-red-500 rounded-lg">
+            <Music className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Gestion de eventos</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl font-bold text-slate-800">
+              Gestion de eventos
+            </h1>
+            <p className="text-slate-700">
               Administra fechas, ubicaciones y disponibilidad de entradas.
             </p>
           </div>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={handleCreateDialogChange}>
+        <Dialog
+          open={isCreateDialogOpen}
+          onOpenChange={handleCreateDialogChange}
+        >
           <DialogTrigger asChild>
-            <Button onClick={openCreateDialog} className="gap-2">
+            <Button
+              onClick={openCreateDialog}
+              className="gap-2  bg-gradient-to-br from-rose-500 via-red-400 to-red-500"
+            >
               <Plus className="h-4 w-4" />
               Crear evento
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-scroll no-scrollbar">
             <DialogHeader>
               <DialogTitle>Crea un nuevo evento</DialogTitle>
               <DialogDescription>
-                Anade un nuevo evento a tu agenda. Completa todos los datos a continuacion.
+                Anade un nuevo evento a tu agenda. Completa todos los datos a
+                continuacion.
               </DialogDescription>
             </DialogHeader>
             {createError && (
@@ -325,13 +334,13 @@ export function EventsManagement() {
         </div>
       )}
 
-      <Tabs defaultValue="upcoming" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
-          <TabsTrigger value="upcoming" className="gap-2">
+      <Tabs defaultValue="upcoming" className="space-y-6 ">
+        <TabsList className="grid w-full grid-cols-2 max-w-md bg-red-100  ">
+          <TabsTrigger value="upcoming" className="gap-2 text-slate-800">
             <Calendar className="h-4 w-4" />
             Proximos ({upcomingEvents.length})
           </TabsTrigger>
-          <TabsTrigger value="past" className="gap-2">
+          <TabsTrigger value="past" className="gap-2 text-slate-800">
             <Clock className="h-4 w-4" />
             Pasados ({pastEvents.length})
           </TabsTrigger>
@@ -339,22 +348,23 @@ export function EventsManagement() {
 
         <TabsContent value="upcoming" className="space-y-4">
           {loading ? (
-            <Card className="text-center py-12">
+            <Card className="text-center py-12 bg-red-100">
               <CardContent>
-                <p className="text-muted-foreground">Cargando eventos...</p>
+                <p className="text-slate-700">Cargando eventos...</p>
               </CardContent>
             </Card>
           ) : upcomingEvents.length === 0 ? (
-            <Card className="text-center py-12">
+            <Card className="text-center py-12 bg-red-100">
               <CardContent>
-                <Music className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">
+                <Music className="h-12 w-12 text-slate-700 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2 text-slate-800">
                   No hay proximos eventos
                 </h3>
-                <p className="text-muted-foreground mb-4">
-                  Crea tu primer evento.
-                </p>
-                <Button onClick={openCreateDialog} className="gap-2">
+                <p className="text-slate-700 mb-4 ">Crea tu primer evento.</p>
+                <Button
+                  onClick={openCreateDialog}
+                  className="gap-2 bg-gradient-to-br from-rose-500 via-red-400 to-red-500 "
+                >
                   <Plus className="h-4 w-4" />
                   Crear evento
                 </Button>
@@ -378,19 +388,19 @@ export function EventsManagement() {
 
         <TabsContent value="past" className="space-y-4">
           {loading ? (
-            <Card className="text-center py-12">
+            <Card className="text-center py-12 text-red-100">
               <CardContent>
-                <p className="text-muted-foreground">Cargando eventos...</p>
+                <p className="text-slate-700">Cargando eventos...</p>
               </CardContent>
             </Card>
           ) : pastEvents.length === 0 ? (
-            <Card className="text-center py-12">
+            <Card className="text-center py-12 bg-red-100">
               <CardContent>
-                <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">
+                <Clock className="h-12 w-12 mx-auto mb-4 text-slate-700" />
+                <h3 className="text-lg font-semibold mb-2 text-slate-800">
                   No hay eventos pasados
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-slate-700">
                   Tu historial de eventos aparecera aqui.
                 </p>
               </CardContent>
@@ -412,13 +422,13 @@ export function EventsManagement() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
+      <Dialog
+        open={!!selectedEvent}
+        onOpenChange={() => setSelectedEvent(null)}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedEvent && (
-            <EventDetails
-              event={selectedEvent}
-              onEdit={openEditDialog}
-            />
+            <EventDetails event={selectedEvent} onEdit={openEditDialog} />
           )}
         </DialogContent>
       </Dialog>
@@ -431,9 +441,7 @@ export function EventsManagement() {
               Actualiza los detalles del evento seleccionado.
             </DialogDescription>
           </DialogHeader>
-          {editError && (
-            <p className="text-sm text-destructive">{editError}</p>
-          )}
+          {editError && <p className="text-sm text-destructive">{editError}</p>}
           {editingEvent && (
             <EventForm
               initialData={editingEvent}

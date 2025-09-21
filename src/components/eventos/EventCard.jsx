@@ -65,7 +65,13 @@ const getEntradasDisponibles = (entradas) => {
   }, 0);
 };
 
-export function EventCard({ event, onView, onEdit, onDelete, isDeleting = false }) {
+export function EventCard({
+  event,
+  onView,
+  onEdit,
+  onDelete,
+  isDeleting = false,
+}) {
   const fechaFormateada = formatDate(event?.fecha);
   const lugar = buildLugar(event);
   const precioDesde = getPrecioDesde(event?.entradas);
@@ -79,7 +85,7 @@ export function EventCard({ event, onView, onEdit, onDelete, isDeleting = false 
       <CardHeader className="p-0">
         <div className="relative">
           <img
-            src={event?.imagenPrincipal || "/placeholder.svg"}
+            src={event?.imagenPrincipal || "/imagen2.png"}
             alt={event?.nombreEvento || "Evento"}
             className="w-full h-48 object-cover rounded-t-lg"
           />
@@ -88,7 +94,10 @@ export function EventCard({ event, onView, onEdit, onDelete, isDeleting = false 
           </div>
           {typeof entradasDisponibles === "number" && (
             <div className="absolute top-3 right-3">
-              <Badge variant="outline" className="bg-background/80 backdrop-blur-sm">
+              <Badge
+                variant="outline"
+                className="bg-background/80 backdrop-blur-sm"
+              >
                 <Ticket className="h-3 w-3 mr-1" />
                 {entradasDisponibles} entradas
               </Badge>
@@ -102,11 +111,12 @@ export function EventCard({ event, onView, onEdit, onDelete, isDeleting = false 
           <h3 className="font-semibold text-lg text-balance group-hover:text-primary transition-colors">
             {event?.nombreEvento || "Evento sin titulo"}
           </h3>
-          {Array.isArray(event?.artistasExtras) && event.artistasExtras.length > 0 && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              Invitados: {event.artistasExtras.join(", ")}
-            </p>
-          )}
+          {Array.isArray(event?.artistasExtras) &&
+            event.artistasExtras.length > 0 && (
+              <p className="text-sm text-muted-foreground line-clamp-2">
+                Invitados: {event.artistasExtras.join(", ")}
+              </p>
+            )}
         </div>
 
         <div className="space-y-2 text-sm text-muted-foreground">
@@ -131,7 +141,9 @@ export function EventCard({ event, onView, onEdit, onDelete, isDeleting = false 
         <div className="flex items-center justify-between pt-2">
           <div className="text-sm">
             {typeof precioDesde === "number" ? (
-              <span className="font-semibold text-primary">Desde ${precioDesde.toFixed(2)}</span>
+              <span className="font-semibold text-primary">
+                Desde ${precioDesde.toFixed(2)}
+              </span>
             ) : (
               <span className="text-muted-foreground">Precio a confirmar</span>
             )}
@@ -146,7 +158,7 @@ export function EventCard({ event, onView, onEdit, onDelete, isDeleting = false 
               }}
               className="gap-1"
             >
-              <Edit className="h-3 w-3" />
+              <Edit className="h-3 w-3 " />
               Editar
             </Button>
             <Button

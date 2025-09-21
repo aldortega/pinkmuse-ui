@@ -310,6 +310,7 @@ export function EventForm({
           <h3 className="text-lg font-semibold">Entradas *</h3>
           <Button
             type="button"
+            className="cursor-pointer"
             variant="outline"
             onClick={addEntrada}
             disabled={isSubmitting}
@@ -397,6 +398,7 @@ export function EventForm({
                 <Button
                   type="button"
                   variant="outline"
+                  className="cursor-pointer"
                   onClick={() => removeEntrada(index)}
                   disabled={formData.entradas.length === 1 || isSubmitting}
                 >
@@ -422,7 +424,11 @@ export function EventForm({
       </section>
 
       <div className="flex gap-3 pt-4">
-        <Button type="submit" className="flex-1" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          className="flex-1 cursor-pointer bg-gradient-to-br from-rose-500 via-red-400 to-red-500"
+          disabled={isSubmitting}
+        >
           {submitLabel}
         </Button>
       </div>

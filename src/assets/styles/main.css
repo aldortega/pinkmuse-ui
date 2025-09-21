@@ -127,18 +127,33 @@
   --font-pop: "Poppins", sans-serif;
 }
 
-@layer base {
+/* @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply font-sans bg-background text-foreground;
   }
-}
+} */
 
 html,
 body {
   height: 100%;
   overflow: scroll;
-  background-color: rgb(255, 175, 189);
+  background-color: #fef2f2;
+}
+@utility no-scrollbar {
+  @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+}
+
+@layer base {
+  * {
+    /* bordes y outline con variables CSS */
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    @apply font-sans bg-background text-foreground;
+  }
 }

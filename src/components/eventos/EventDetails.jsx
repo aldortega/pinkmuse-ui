@@ -1,14 +1,7 @@
 ﻿import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Calendar,
-  MapPin,
-  Clock,
-  Edit,
-  Ticket,
-  Users,
-} from "lucide-react";
+import { Calendar, MapPin, Clock, Edit, Ticket, Users } from "lucide-react";
 
 const formatDate = (value) => {
   if (!value) {
@@ -42,7 +35,9 @@ const buildLugar = (evento) => {
     const partes = [];
     if (direccion.calle) {
       partes.push(
-        direccion.numero ? `${direccion.calle} ${direccion.numero}` : direccion.calle
+        direccion.numero
+          ? `${direccion.calle} ${direccion.numero}`
+          : direccion.calle
       );
     } else if (direccion.numero) {
       partes.push(String(direccion.numero));
@@ -78,7 +73,7 @@ export function EventDetails({ event, onEdit }) {
     <div className="space-y-6">
       <div className="relative">
         <img
-          src={event?.imagenPrincipal || "/placeholder.svg"}
+          src={event?.imagenPrincipal || "/imagen22.png"}
           alt={event?.nombreEvento || "Evento"}
           className="w-full h-64 object-cover rounded-lg"
         />
@@ -91,13 +86,16 @@ export function EventDetails({ event, onEdit }) {
 
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-balance">
+          <h2 className="text-2xl font-bold text-balance bg-gradient-to-br from-rose-500 via-red-400 to-red-500 text-transparent bg-clip-text">
             {event?.nombreEvento || "Evento sin titulo"}
           </h2>
           <p className="text-muted-foreground">{lugar}</p>
         </div>
-        <Button onClick={() => onEdit?.(event)} className="gap-2 self-start">
-          <Edit className="h-4 w-4" />
+        <Button
+          onClick={() => onEdit?.(event)}
+          className="gap-2 cursor-pointer self-start bg-gradient-to-br from-rose-500 via-red-400 to-red-500"
+        >
+          <Edit className="h-4 w-4 " />
           Editar evento
         </Button>
       </div>
@@ -118,7 +116,9 @@ export function EventDetails({ event, onEdit }) {
             <div className="flex items-start gap-3">
               <Clock className="h-5 w-5 text-primary" />
               <div>
-                <p className="font-medium">{event?.hora || "Horario por confirmar"}</p>
+                <p className="font-medium">
+                  {event?.hora || "Horario por confirmar"}
+                </p>
                 <p className="text-muted-foreground">Hora</p>
               </div>
             </div>
@@ -147,7 +147,9 @@ export function EventDetails({ event, onEdit }) {
                 >
                   <div>
                     <p className="font-medium">{entrada.tipo}</p>
-                    <p className="text-muted-foreground">Estado: {entrada.estado}</p>
+                    <p className="text-muted-foreground">
+                      Estado: {entrada.estado}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-primary">
@@ -173,7 +175,8 @@ export function EventDetails({ event, onEdit }) {
 
       <div className="space-y-3">
         <h3 className="font-semibold text-lg">Artistas invitados</h3>
-        {Array.isArray(event?.artistasExtras) && event.artistasExtras.length > 0 ? (
+        {Array.isArray(event?.artistasExtras) &&
+        event.artistasExtras.length > 0 ? (
           <ul className="grid gap-2 sm:grid-cols-2">
             {event.artistasExtras.map((artista, index) => (
               <li
