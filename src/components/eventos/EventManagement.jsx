@@ -336,11 +336,17 @@ export function EventsManagement() {
 
       <Tabs defaultValue="upcoming" className="space-y-6 ">
         <TabsList className="grid w-full grid-cols-2 max-w-md bg-red-100  ">
-          <TabsTrigger value="upcoming" className="gap-2 text-slate-800">
+          <TabsTrigger
+            value="upcoming"
+            className="gap-2 text-slate-800 data-[state=active]:bg-red-50"
+          >
             <Calendar className="h-4 w-4" />
             Proximos ({upcomingEvents.length})
           </TabsTrigger>
-          <TabsTrigger value="past" className="gap-2 text-slate-800">
+          <TabsTrigger
+            value="past"
+            className="gap-2 text-slate-800 data-[state=active]:bg-red-50"
+          >
             <Clock className="h-4 w-4" />
             Pasados ({pastEvents.length})
           </TabsTrigger>
@@ -388,7 +394,7 @@ export function EventsManagement() {
 
         <TabsContent value="past" className="space-y-4">
           {loading ? (
-            <Card className="text-center py-12 text-red-100">
+            <Card className="text-center py-12 bg-red-100">
               <CardContent>
                 <p className="text-slate-700">Cargando eventos...</p>
               </CardContent>
