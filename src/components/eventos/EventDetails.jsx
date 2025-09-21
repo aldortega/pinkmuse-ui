@@ -78,7 +78,10 @@ export function EventDetails({ event, onEdit }) {
           className="w-full h-64 object-cover rounded-lg"
         />
         <div className="absolute top-4 left-4">
-          <Badge variant="secondary" className="text-sm">
+          <Badge
+            variant="secondary"
+            className="text-sm bg-red-100 text-slate-800"
+          >
             {formatEstado(event?.estado)}
           </Badge>
         </div>
@@ -86,10 +89,10 @@ export function EventDetails({ event, onEdit }) {
 
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-balance bg-gradient-to-br from-rose-500 via-red-400 to-red-500 text-transparent bg-clip-text">
+          <h2 className="text-2xl font-bold text-balance text-slate-800">
             {event?.nombreEvento || "Evento sin titulo"}
           </h2>
-          <p className="text-muted-foreground">{lugar}</p>
+          <p className="text-slate-600">{lugar}</p>
         </div>
         <Button
           onClick={() => onEdit?.(event)}
@@ -104,38 +107,40 @@ export function EventDetails({ event, onEdit }) {
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Informacion del evento</h3>
+          <h3 className="font-semibold text-lg text-slate-800">
+            Informacion del evento
+          </h3>
           <div className="space-y-3 text-sm">
             <div className="flex items-start gap-3">
-              <Calendar className="h-5 w-5 text-primary" />
+              <Calendar className="h-5 w-5 text-slate-800" />
               <div>
-                <p className="font-medium capitalize">{fecha}</p>
-                <p className="text-muted-foreground">Fecha</p>
+                <p className="font-medium capitalize text-slate-800">{fecha}</p>
+                <p className="text-slate-600">Fecha</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Clock className="h-5 w-5 text-primary" />
+              <Clock className="h-5 w-5 text-slate-800" />
               <div>
-                <p className="font-medium">
+                <p className="font-medium text-slate-800">
                   {event?.hora || "Horario por confirmar"}
                 </p>
-                <p className="text-muted-foreground">Hora</p>
+                <p className="text-slate-600">Hora</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <MapPin className="h-5 w-5 text-primary" />
+              <MapPin className="h-5 w-5 text-slate-800" />
               <div>
-                <p className="font-medium">{lugar}</p>
-                <p className="text-muted-foreground">Ubicacion</p>
+                <p className="font-medium text-slate-800">{lugar}</p>
+                <p className="text-slate-600">Ubicacion</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Entradas</h3>
+          <h3 className="font-semibold text-lg text-slate-800">Entradas</h3>
           {entradas.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-slate-600">
               Aun no se cargaron tipos de entrada para este evento.
             </p>
           ) : (
@@ -146,18 +151,16 @@ export function EventDetails({ event, onEdit }) {
                   className="flex items-center justify-between rounded-md border px-3 py-2"
                 >
                   <div>
-                    <p className="font-medium">{entrada.tipo}</p>
-                    <p className="text-muted-foreground">
-                      Estado: {entrada.estado}
-                    </p>
+                    <p className="font-medium text-slate-800">{entrada.tipo}</p>
+                    <p className="text-slate-600">Estado: {entrada.estado}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-primary">
+                    <p className="font-semibold text-slate-800">
                       {Number.isFinite(entrada.precio)
-                        ? `$${entrada.precio.toFixed(2)}`
+                        ? `$${entrada.precio.toFixed(0)}`
                         : "Precio no definido"}
                     </p>
-                    <p className="text-muted-foreground">
+                    <p className="text-slate-600">
                       <Ticket className="inline h-3 w-3 mr-1" />
                       {Number.isFinite(entrada.cantidad)
                         ? `${entrada.cantidad} disponibles`
@@ -174,22 +177,24 @@ export function EventDetails({ event, onEdit }) {
       <Separator />
 
       <div className="space-y-3">
-        <h3 className="font-semibold text-lg">Artistas invitados</h3>
+        <h3 className="font-semibold text-lg text-slate-800">
+          Artistas invitados
+        </h3>
         {Array.isArray(event?.artistasExtras) &&
         event.artistasExtras.length > 0 ? (
           <ul className="grid gap-2 sm:grid-cols-2">
             {event.artistasExtras.map((artista, index) => (
               <li
                 key={`${artista}-${index}`}
-                className="flex items-center gap-2 text-sm text-muted-foreground"
+                className="flex items-center gap-2 text-sm text-slate-600"
               >
-                <Users className="h-4 w-4 text-primary" />
+                <Users className="h-4 w-4 text-slate-800" />
                 {artista}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-600">
             No hay artistas adicionales registrados.
           </p>
         )}

@@ -79,7 +79,7 @@ export function EventCard({
 
   return (
     <Card
-      className="group hover:shadow-lg transition-all duration-200 cursor-pointer"
+      className="group hover:shadow-lg transition-all duration-200 bg-red-50"
       onClick={() => onView?.(event)}
     >
       <CardHeader className="p-0">
@@ -89,14 +89,19 @@ export function EventCard({
             alt={event?.nombreEvento || "Evento"}
             className="w-full h-48 object-cover rounded-t-lg"
           />
-          <div className="absolute top-3 left-3">
-            <Badge variant="secondary">{formatEstado(event?.estado)}</Badge>
+          <div className="absolute top-3 left-3 ">
+            <Badge
+              variant="secondary"
+              className="bg-red-50/80 backdrop-blur-sm text-slate-800"
+            >
+              {formatEstado(event?.estado)}
+            </Badge>
           </div>
           {typeof entradasDisponibles === "number" && (
             <div className="absolute top-3 right-3">
               <Badge
                 variant="outline"
-                className="bg-background/80 backdrop-blur-sm"
+                className="bg-red-50/80 backdrop-blur-sm text-slate-800"
               >
                 <Ticket className="h-3 w-3 mr-1" />
                 {entradasDisponibles} entradas
@@ -108,18 +113,18 @@ export function EventCard({
 
       <CardContent className="p-4 space-y-3">
         <div>
-          <h3 className="font-semibold text-lg text-balance group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-lg text-balance text-slate-800 transition-colors">
             {event?.nombreEvento || "Evento sin titulo"}
           </h3>
           {Array.isArray(event?.artistasExtras) &&
             event.artistasExtras.length > 0 && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
+              <p className="text-sm text-slate-600 line-clamp-2">
                 Invitados: {event.artistasExtras.join(", ")}
               </p>
             )}
         </div>
 
-        <div className="space-y-2 text-sm text-muted-foreground">
+        <div className="space-y-2 text-sm text-slate-600">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span>{fechaFormateada}</span>
@@ -139,13 +144,13 @@ export function EventCard({
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          <div className="text-sm">
+          <div className="text-sm ">
             {typeof precioDesde === "number" ? (
-              <span className="font-semibold text-primary">
-                Desde ${precioDesde.toFixed(2)}
+              <span className="font-semibold text-slate-800">
+                Desde ${precioDesde.toFixed(0)}
               </span>
             ) : (
-              <span className="text-muted-foreground">Precio a confirmar</span>
+              <span className="text-slate-600">Precio a confirmar</span>
             )}
           </div>
           <div className="flex gap-2">
@@ -156,7 +161,7 @@ export function EventCard({
                 e.stopPropagation();
                 onEdit?.(event);
               }}
-              className="gap-1"
+              className="gap-1 text-slate-800 cursor-pointer"
             >
               <Edit className="h-3 w-3 " />
               Editar
@@ -168,7 +173,7 @@ export function EventCard({
                 e.stopPropagation();
                 onDelete?.(event);
               }}
-              className="gap-1 text-destructive hover:text-destructive"
+              className="gap-1 text-destructive hover:text-destructive cursor-pointer"
               disabled={isDeleting}
             >
               <Trash2 className="h-3 w-3" />

@@ -1,6 +1,8 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -10,7 +12,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Calendar, Clock, Plus, Music } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Plus,
+  Music,
+  CheckCircle,
+  AlertTriangle,
+} from "lucide-react";
 import api from "@/lib/axios";
 import { EventCard } from "./EventCard";
 import { EventDetails } from "./EventDetails";
@@ -267,7 +276,7 @@ export function EventsManagement() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-red-50">
+    <div className="container mx-auto px-4 py-8 bg-red-100">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-br from-rose-500 via-red-400 to-red-500 rounded-lg">
@@ -289,7 +298,7 @@ export function EventsManagement() {
           <DialogTrigger asChild>
             <Button
               onClick={openCreateDialog}
-              className="gap-2  bg-gradient-to-br from-rose-500 via-red-400 to-red-500"
+              className="gap-2  bg-gradient-to-br from-rose-500 via-red-400 to-red-500 cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               Crear evento
@@ -317,25 +326,32 @@ export function EventsManagement() {
       {(statusMessage || listError || actionError) && (
         <div className="space-y-2 mb-6">
           {statusMessage && (
-            <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
-              {statusMessage}
-            </div>
+            <Alert className="border-emerald-200 bg-emerald-50">
+              <CheckCircle className="h-4 w-4 text-emerald-700" />
+              <AlertTitle className="text-emerald-700">
+                {statusMessage}
+              </AlertTitle>
+            </Alert>
           )}
+
           {listError && (
-            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-              {listError}
-            </div>
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>{listError}</AlertTitle>
+            </Alert>
           )}
+
           {actionError && !listError && (
-            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive">
-              {actionError}
-            </div>
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>{actionError}</AlertTitle>
+            </Alert>
           )}
         </div>
       )}
 
       <Tabs defaultValue="upcoming" className="space-y-6 ">
-        <TabsList className="grid w-full grid-cols-2 max-w-md bg-red-100  ">
+        <TabsList className="grid w-full grid-cols-2 max-w-md bg-red-200  ">
           <TabsTrigger
             value="upcoming"
             className="gap-2 text-slate-800 data-[state=active]:bg-red-50"
