@@ -201,7 +201,9 @@ export function EventForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <section className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="nombreEvento">Nombre del evento *</Label>
+          <Label className="text-slate-800" htmlFor="nombreEvento">
+            Nombre del evento
+          </Label>
           <Input
             id="nombreEvento"
             value={formData.nombreEvento}
@@ -212,7 +214,9 @@ export function EventForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="nombreLugar">Nombre del lugar *</Label>
+          <Label className="text-slate-800" htmlFor="nombreLugar">
+            Nombre del lugar
+          </Label>
           <Input
             id="nombreLugar"
             value={formData.nombreLugar}
@@ -222,7 +226,9 @@ export function EventForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="fecha">Fecha *</Label>
+          <Label className="text-slate-800" htmlFor="fecha">
+            Fecha *
+          </Label>
           <Input
             id="fecha"
             type="date"
@@ -232,7 +238,9 @@ export function EventForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="hora">Hora *</Label>
+          <Label className="text-slate-800" htmlFor="hora">
+            Hora *
+          </Label>
           <Input
             id="hora"
             type="time"
@@ -242,7 +250,9 @@ export function EventForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="estado">Estado *</Label>
+          <Label className="text-slate-800" htmlFor="estado">
+            Estado *
+          </Label>
           <Select
             value={formData.estado}
             onValueChange={(value) => updateField("estado", value)}
@@ -260,7 +270,9 @@ export function EventForm({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="imagenPrincipal">Imagen principal (URL)</Label>
+          <Label className="text-slate-800" htmlFor="imagenPrincipal">
+            Imagen principal (URL)
+          </Label>
           <Input
             id="imagenPrincipal"
             value={formData.imagenPrincipal}
@@ -271,10 +283,14 @@ export function EventForm({
       </section>
 
       <section className="space-y-4">
-        <h3 className="text-lg font-semibold">Direccion (opcional)</h3>
+        <h3 className="text-lg font-semibold text-slate-800">
+          Direccion (opcional)
+        </h3>
         <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
-            <Label htmlFor="direccionCalle">Calle</Label>
+            <Label className="text-slate-800" htmlFor="direccionCalle">
+              Calle
+            </Label>
             <Input
               id="direccionCalle"
               value={formData.direccion.calle}
@@ -283,7 +299,9 @@ export function EventForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="direccionNumero">Numero</Label>
+            <Label className="text-slate-800" htmlFor="direccionNumero">
+              Numero
+            </Label>
             <Input
               id="direccionNumero"
               type="number"
@@ -294,7 +312,9 @@ export function EventForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="direccionCiudad">Ciudad</Label>
+            <Label className="text-slate-800" htmlFor="direccionCiudad">
+              Ciudad
+            </Label>
             <Input
               id="direccionCiudad"
               value={formData.direccion.ciudad}
@@ -307,10 +327,10 @@ export function EventForm({
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Entradas *</h3>
+          <h3 className="text-lg font-semibold text-slate-800">Entradas</h3>
           <Button
             type="button"
-            className="cursor-pointer"
+            className="cursor-pointer text-slate-800"
             variant="outline"
             onClick={addEntrada}
             disabled={isSubmitting}
@@ -318,7 +338,7 @@ export function EventForm({
             Agregar tipo de entrada
           </Button>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-slate-600">
           Define los tipos de entrada disponibles para este evento.
         </p>
         <div className="space-y-4">
@@ -329,7 +349,12 @@ export function EventForm({
             >
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor={`entrada-tipo-${index}`}>Tipo *</Label>
+                  <Label
+                    className="text-slate-800"
+                    htmlFor={`entrada-tipo-${index}`}
+                  >
+                    Tipo *
+                  </Label>
                   <Input
                     id={`entrada-tipo-${index}`}
                     value={entrada.tipo}
@@ -341,7 +366,12 @@ export function EventForm({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`entrada-estado-${index}`}>Estado *</Label>
+                  <Label
+                    className="text-slate-800"
+                    htmlFor={`entrada-estado-${index}`}
+                  >
+                    Estado *
+                  </Label>
                   <Select
                     value={entrada.estado}
                     onValueChange={(value) =>
@@ -363,7 +393,10 @@ export function EventForm({
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor={`entrada-precio-${index}`}>
+                  <Label
+                    className="text-slate-800"
+                    htmlFor={`entrada-precio-${index}`}
+                  >
                     Precio (ARS) *
                   </Label>
                   <Input
@@ -379,7 +412,10 @@ export function EventForm({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`entrada-cantidad-${index}`}>
+                  <Label
+                    className="text-slate-800"
+                    htmlFor={`entrada-cantidad-${index}`}
+                  >
                     Cantidad disponible *
                   </Label>
                   <Input
@@ -398,7 +434,7 @@ export function EventForm({
                 <Button
                   type="button"
                   variant="outline"
-                  className="cursor-pointer"
+                  className="cursor-pointer text-slate-800"
                   onClick={() => removeEntrada(index)}
                   disabled={formData.entradas.length === 1 || isSubmitting}
                 >
@@ -411,10 +447,11 @@ export function EventForm({
       </section>
 
       <section className="space-y-2">
-        <Label htmlFor="artistasExtras">
+        <Label className="text-slate-800" htmlFor="artistasExtras">
           Artistas invitados (uno por linea)
         </Label>
         <Textarea
+          className="text-slate-800"
           id="artistasExtras"
           value={formData.artistasExtrasText}
           onChange={(e) => handleArtistasExtrasChange(e.target.value)}

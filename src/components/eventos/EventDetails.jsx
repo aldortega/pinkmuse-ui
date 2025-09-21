@@ -73,14 +73,14 @@ export function EventDetails({ event, onEdit }) {
     <div className="space-y-6">
       <div className="relative">
         <img
-          src={event?.imagenPrincipal || "/imagen22.png"}
+          src={event?.imagenPrincipal || "/imagen4.png"}
           alt={event?.nombreEvento || "Evento"}
           className="w-full h-64 object-cover rounded-lg"
         />
         <div className="absolute top-4 left-4">
           <Badge
             variant="secondary"
-            className="text-sm bg-red-100 text-slate-800"
+            className="text-sm bg-red-100/80 text-slate-800"
           >
             {formatEstado(event?.estado)}
           </Badge>

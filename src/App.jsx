@@ -5,6 +5,7 @@ import HomePage from "@/pages/Home";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingPage from "@/pages/LandingPage";
 import { EventsManagement } from "./components/eventos/EventManagement";
+import Home from "./pages/Homess";
 
 export default function App() {
   return (
@@ -18,7 +19,7 @@ export default function App() {
             path="/home"
             element={
               <ProtectedRoute>
-                <HomePage />
+                <Home />
               </ProtectedRoute>
             }
           />

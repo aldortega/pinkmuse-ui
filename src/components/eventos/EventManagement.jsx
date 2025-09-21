@@ -19,6 +19,7 @@ import {
   Music,
   CheckCircle,
   AlertTriangle,
+  CalendarDays,
 } from "lucide-react";
 import api from "@/lib/axios";
 import { EventCard } from "./EventCard";
@@ -280,7 +281,7 @@ export function EventsManagement() {
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-br from-rose-500 via-red-400 to-red-500 rounded-lg">
-            <Music className="h-6 w-6 text-white" />
+            <CalendarDays className="h-6 w-6 text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
@@ -304,10 +305,12 @@ export function EventsManagement() {
               Crear evento
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-scroll no-scrollbar">
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-scroll no-scrollbar bg-red-50">
             <DialogHeader>
-              <DialogTitle>Crea un nuevo evento</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-slate-800">
+                Crea un nuevo evento
+              </DialogTitle>
+              <DialogDescription className="text-slate-600">
                 Anade un nuevo evento a tu agenda. Completa todos los datos a
                 continuacion.
               </DialogDescription>
@@ -335,7 +338,7 @@ export function EventsManagement() {
           )}
 
           {listError && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="bg-red-200">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>{listError}</AlertTitle>
             </Alert>
@@ -448,7 +451,7 @@ export function EventsManagement() {
         open={!!selectedEvent}
         onOpenChange={() => setSelectedEvent(null)}
       >
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl w-full max-h-[90vh] overflow-y-auto bg-red-50">
           {selectedEvent && (
             <EventDetails event={selectedEvent} onEdit={openEditDialog} />
           )}
@@ -456,7 +459,7 @@ export function EventsManagement() {
       </Dialog>
 
       <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-red-50">
           <DialogHeader>
             <DialogTitle>Editar evento</DialogTitle>
             <DialogDescription>

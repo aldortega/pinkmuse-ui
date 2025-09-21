@@ -85,14 +85,14 @@ export function EventCard({
       <CardHeader className="p-0">
         <div className="relative">
           <img
-            src={event?.imagenPrincipal || "/imagen2.png"}
+            src={event?.imagenPrincipal || "/imagen4.png"}
             alt={event?.nombreEvento || "Evento"}
             className="w-full h-48 object-cover rounded-t-lg"
           />
           <div className="absolute top-3 left-3 ">
             <Badge
               variant="secondary"
-              className="bg-red-50/80 backdrop-blur-sm text-slate-800"
+              className="bg-red-100/80 backdrop-blur-sm text-slate-800"
             >
               {formatEstado(event?.estado)}
             </Badge>
@@ -101,7 +101,7 @@ export function EventCard({
             <div className="absolute top-3 right-3">
               <Badge
                 variant="outline"
-                className="bg-red-50/80 backdrop-blur-sm text-slate-800"
+                className="bg-red-100/80 backdrop-blur-sm text-slate-800"
               >
                 <Ticket className="h-3 w-3 mr-1" />
                 {entradasDisponibles} entradas
