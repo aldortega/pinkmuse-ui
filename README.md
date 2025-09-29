@@ -1,12 +1,37 @@
-# React + Vite
+# 🎶 PinkMuse Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**PinkMuse** is a digital platform designed for **musical artists and bands**, bringing together content management, fan interaction, merchandise sales, event organization, and e-commerce in one place.  
 
-Currently, two official plugins are available:
+This repository contains the **frontend** of the application, built with a modern **UI/UX focus** and optimized for scalability and responsiveness.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🚀 Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- ⚛️ **React** – Fast and modern frontend framework.
+- 🎨 **TailwindCSS** – Utility-first CSS for a consistent design.
+- 🧩 **shadcn/ui** – Accessible and customizable UI components.
+- 🌐 **React Router** – Client-side routing and navigation.
+- 🔒 **Auth (JWT / Context)** – Authentication and protected routes.
+
+---
+
+## 📂 Project Structure
+
+```bash
+pinkmuse-frontend/
+├── public/              # Static assets
+├── src/
+│   ├── assets/          # Images, icons, fonts
+│   ├── components/      # Reusable components
+│   ├── pages/           # Main pages
+│   ├── hooks/           # Custom React hooks
+│   ├── context/         # Global contexts (auth, theme, etc.)
+│   ├── services/        # API requests (Axios, endpoints)
+│   ├── routes/          # Route configuration
+│   ├── App.jsx
+│   └── main.jsx
+├── .env.example         
+├── package.json
+└── README.md
+
