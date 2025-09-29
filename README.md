@@ -1,4 +1,4 @@
-# 🎶 PinkMuse Frontend
+# 🎶 PinkMuse
 
 **PinkMuse** is a digital platform designed for **musical artists and bands**, bringing together content management, fan interaction, merchandise sales, event organization, and e-commerce in one place.  
 
