@@ -1,41 +1,14 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Calendar,
-  Clock,
-  Plus,
-  Music,
-  CheckCircle,
-  AlertTriangle,
-  CalendarDays,
-} from "lucide-react";
 import api from "@/lib/axios";
-import { EventCard } from "./EventCard";
-import { EventDetails } from "./EventDetails";
-import { EventForm } from "./EventForm";
+
 import { Header } from "../home/header";
-
-const getEventKey = (event) => event?._id ?? event?.id ?? event?.nombreEvento;
-
-const parseDate = (value) => {
-  if (!value) {
-    return null;
-  }
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
+import { EventCategoryTabs } from "./EventCategoryTabs";
+import { EventDetailsDialog } from "./EventDetailsDialog";
+import { EventEditDialog } from "./EventEditDialog";
+import { EventManagementHeader } from "./EventManagementHeader";
+import { EventsFeedback } from "./EventsFeedback";
+import { getEventKey, splitEventsByDate } from "./eventManagement.utils";
 
 export function EventsManagement() {
   const [events, setEvents] = useState([]);
@@ -78,44 +51,10 @@ export function EventsManagement() {
     fetchEvents();
   }, [fetchEvents]);
 
-  const { upcomingEvents, pastEvents } = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const upcoming = [];
-    const past = [];
-
-    events.forEach((event) => {
-      const eventDate = parseDate(event?.fecha);
-      if (eventDate && eventDate < today) {
-        past.push(event);
-      } else {
-        upcoming.push(event);
-      }
-    });
-
-    const sortAsc = (a, b) => {
-      const dateA = parseDate(a?.fecha);
-      const dateB = parseDate(b?.fecha);
-      if (!dateA && !dateB) {
-        return 0;
-      }
-      if (!dateA) {
-        return 1;
-      }
-      if (!dateB) {
-        return -1;
-      }
-      return dateA.getTime() - dateB.getTime();
-    };
-
-    const sortDesc = (a, b) => -sortAsc(a, b);
-
-    return {
-      upcomingEvents: [...upcoming].sort(sortAsc),
-      pastEvents: [...past].sort(sortDesc),
-    };
-  }, [events]);
+  const { upcomingEvents, pastEvents } = useMemo(
+    () => splitEventsByDate(events),
+    [events]
+  );
 
   const resetFeedback = () => {
     setStatusMessage(null);
@@ -195,21 +134,32 @@ export function EventsManagement() {
       const updated = response?.data?.data;
       if (updated) {
         setEvents((prev) =>
-          prev.map((event) =>
-            getEventKey(event) === getEventKey(updated)
-              ? updated
-              : event.nombreEvento === updated.nombreEvento
-              ? updated
-              : event
-          )
+          prev.map((event) => {
+            const eventKey = getEventKey(event);
+            const updatedKey = getEventKey(updated);
+            if (eventKey === updatedKey) {
+              return updated;
+            }
+            if (event.nombreEvento === updated.nombreEvento) {
+              return updated;
+            }
+            return event;
+          })
         );
-        setSelectedEvent((current) =>
-          current &&
-          (getEventKey(current) === getEventKey(updated) ||
-            current.nombreEvento === updated.nombreEvento)
-            ? updated
-            : current
-        );
+        setSelectedEvent((current) => {
+          if (!current) {
+            return current;
+          }
+          const currentKey = getEventKey(current);
+          const updatedKey = getEventKey(updated);
+          if (
+            currentKey === updatedKey ||
+            current.nombreEvento === updated.nombreEvento
+          ) {
+            return updated;
+          }
+          return current;
+        });
       } else {
         await fetchEvents();
       }
@@ -277,212 +227,55 @@ export function EventsManagement() {
     setIsEditDialogOpen(true);
   };
 
+  const closeSelectedEvent = useCallback(() => {
+    setSelectedEvent(null);
+  }, []);
+
   return (
     <div>
-      <Header></Header>
+      <Header />
 
       <div className="container mx-auto mt-1 px-4 py-4 ">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-rose-500 via-red-400 to-red-500 rounded-lg">
-              <CalendarDays className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800">
-                Gestion de eventos
-              </h1>
-              <p className="text-slate-700">
-                Administra fechas, ubicaciones y disponibilidad de entradas.
-              </p>
-            </div>
-          </div>
-          <Dialog
-            open={isCreateDialogOpen}
-            onOpenChange={handleCreateDialogChange}
-          >
-            <DialogTrigger asChild>
-              <Button
-                onClick={openCreateDialog}
-                className="gap-2  bg-gradient-to-br from-rose-500 via-red-400 to-red-500 cursor-pointer"
-              >
-                <Plus className="h-4 w-4" />
-                Crear evento
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-scroll no-scrollbar bg-red-50">
-              <DialogHeader>
-                <DialogTitle className="text-slate-800">
-                  Crea un nuevo evento
-                </DialogTitle>
-                <DialogDescription className="text-slate-600">
-                  Anade un nuevo evento a tu agenda. Completa todos los datos a
-                  continuacion.
-                </DialogDescription>
-              </DialogHeader>
-              {createError && (
-                <p className="text-sm text-destructive">{createError}</p>
-              )}
-              <EventForm
-                onSubmit={handleCreateEvent}
-                isSubmitting={isCreateSubmitting}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
+        <EventManagementHeader
+          isCreateDialogOpen={isCreateDialogOpen}
+          onCreateDialogChange={handleCreateDialogChange}
+          onOpenCreate={openCreateDialog}
+          onSubmitCreate={handleCreateEvent}
+          isCreateSubmitting={isCreateSubmitting}
+          createError={createError}
+        />
 
-        {(statusMessage || listError || actionError) && (
-          <div className="space-y-2 mb-6">
-            {statusMessage && (
-              <Alert className="border-emerald-200 bg-emerald-50">
-                <CheckCircle className="h-4 w-4 text-emerald-700" />
-                <AlertTitle className="text-emerald-700">
-                  {statusMessage}
-                </AlertTitle>
-              </Alert>
-            )}
+        <EventsFeedback
+          statusMessage={statusMessage}
+          listError={listError}
+          actionError={actionError}
+        />
 
-            {listError && (
-              <Alert variant="destructive" className="bg-red-200">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>{listError}</AlertTitle>
-              </Alert>
-            )}
+        <EventCategoryTabs
+          upcomingEvents={upcomingEvents}
+          pastEvents={pastEvents}
+          loading={loading}
+          onOpenCreate={openCreateDialog}
+          onViewEvent={setSelectedEvent}
+          onEditEvent={openEditDialog}
+          onDeleteEvent={handleDeleteEvent}
+          deletingKey={deletingKey}
+        />
 
-            {actionError && !listError && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>{actionError}</AlertTitle>
-              </Alert>
-            )}
-          </div>
-        )}
+        <EventDetailsDialog
+          event={selectedEvent}
+          onClose={closeSelectedEvent}
+          onEdit={openEditDialog}
+        />
 
-        <Tabs defaultValue="upcoming" className="space-y-6 ">
-          <TabsList className="grid w-full grid-cols-2 max-w-md bg-red-100  ">
-            <TabsTrigger
-              value="upcoming"
-              className="gap-2 text-slate-800 data-[state=active]:bg-red-50"
-            >
-              <Calendar className="h-4 w-4" />
-              Proximos ({upcomingEvents.length})
-            </TabsTrigger>
-            <TabsTrigger
-              value="past"
-              className="gap-2 text-slate-800 data-[state=active]:bg-red-50"
-            >
-              <Clock className="h-4 w-4" />
-              Pasados ({pastEvents.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="upcoming" className="space-y-4">
-            {loading ? (
-              <Card className="text-center py-12 bg-red-50">
-                <CardContent>
-                  <p className="text-slate-700">Cargando eventos...</p>
-                </CardContent>
-              </Card>
-            ) : upcomingEvents.length === 0 ? (
-              <Card className="text-center py-12 bg-red-50">
-                <CardContent>
-                  <Music className="h-12 w-12 text-slate-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2 text-slate-800">
-                    No hay proximos eventos
-                  </h3>
-                  <p className="text-slate-700 mb-4 ">Crea tu primer evento.</p>
-                  <Button
-                    onClick={openCreateDialog}
-                    className="gap-2 bg-gradient-to-br from-rose-500 via-red-400 to-red-500 "
-                  >
-                    <Plus className="h-4 w-4" />
-                    Crear evento
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {upcomingEvents.map((event) => (
-                  <EventCard
-                    key={getEventKey(event)}
-                    event={event}
-                    onView={setSelectedEvent}
-                    onEdit={openEditDialog}
-                    onDelete={handleDeleteEvent}
-                    isDeleting={deletingKey === getEventKey(event)}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="past" className="space-y-4">
-            {loading ? (
-              <Card className="text-center py-12 bg-red-100">
-                <CardContent>
-                  <p className="text-slate-700">Cargando eventos...</p>
-                </CardContent>
-              </Card>
-            ) : pastEvents.length === 0 ? (
-              <Card className="text-center py-12 bg-red-100">
-                <CardContent>
-                  <Clock className="h-12 w-12 mx-auto mb-4 text-slate-700" />
-                  <h3 className="text-lg font-semibold mb-2 text-slate-800">
-                    No hay eventos pasados
-                  </h3>
-                  <p className="text-slate-700">
-                    Tu historial de eventos aparecera aqui.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {pastEvents.map((event) => (
-                  <EventCard
-                    key={getEventKey(event)}
-                    event={event}
-                    onView={setSelectedEvent}
-                    onEdit={openEditDialog}
-                    onDelete={handleDeleteEvent}
-                    isDeleting={deletingKey === getEventKey(event)}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        <Dialog
-          open={!!selectedEvent}
-          onOpenChange={() => setSelectedEvent(null)}
-        >
-          <DialogContent className="sm:max-w-2xl w-full max-h-[90vh] overflow-y-auto bg-red-50">
-            {selectedEvent && (
-              <EventDetails event={selectedEvent} onEdit={openEditDialog} />
-            )}
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={isEditDialogOpen} onOpenChange={handleEditDialogChange}>
-          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-red-50">
-            <DialogHeader>
-              <DialogTitle>Editar evento</DialogTitle>
-              <DialogDescription>
-                Actualiza los detalles del evento seleccionado.
-              </DialogDescription>
-            </DialogHeader>
-            {editError && (
-              <p className="text-sm text-destructive">{editError}</p>
-            )}
-            {editingEvent && (
-              <EventForm
-                initialData={editingEvent}
-                onSubmit={handleEditEvent}
-                isEditing
-                isSubmitting={isEditSubmitting}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+        <EventEditDialog
+          isOpen={isEditDialogOpen}
+          onOpenChange={handleEditDialogChange}
+          event={editingEvent}
+          error={editError}
+          isSubmitting={isEditSubmitting}
+          onSubmitEdit={handleEditEvent}
+        />
       </div>
     </div>
   );
