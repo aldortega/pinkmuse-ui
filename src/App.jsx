@@ -1,11 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
-import HomePage from "@/pages/Home";
+import HomePage from "@/pages/HomePage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LandingPage from "@/pages/LandingPage";
 import { EventsManagement } from "./components/eventos/EventManagement";
-import Home from "./pages/Homess";
 
 export default function App() {
   return (
@@ -19,7 +18,7 @@ export default function App() {
             path="/home"
             element={
               <ProtectedRoute>
-                <Home />
+                <HomePage />
               </ProtectedRoute>
             }
           />

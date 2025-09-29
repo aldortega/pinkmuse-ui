@@ -140,7 +140,7 @@ html,
 body {
   height: 100%;
   overflow: scroll;
-  background-color: #fee2e2;
+  background-color: #fef2f2;
 }
 @utility no-scrollbar {
   @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
