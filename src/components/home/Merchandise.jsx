@@ -23,9 +23,11 @@ const products = [
 export default function Merchandise() {
   return (
     <section className="py-12">
-      <div className="container px-6">
-        <h2 className="text-2xl font-bold text-slate-800 mb-8">Merchandise</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+        <h2 className="mb-8 text-center text-2xl font-bold text-slate-800 sm:text-left">
+          Merchandise
+        </h2>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product, index) => (
             <ProductCard
               key={index}

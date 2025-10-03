@@ -1,23 +1,24 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import api from "@/lib/axios";
+import { useNavigate } from "react-router-dom";
 
-import { Header } from "../home/header";
+import { Header } from "../home/Header";
 import { EventCategoryTabs } from "./EventCategoryTabs";
-import { EventDetailsDialog } from "./EventDetailsDialog";
 import { EventEditDialog } from "./EventEditDialog";
 import { EventManagementHeader } from "./EventManagementHeader";
 import { EventsFeedback } from "./EventsFeedback";
 import { getEventKey, splitEventsByDate } from "./eventManagement.utils";
 
 export function EventsManagement() {
+  const navigate = useNavigate();
+
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [statusMessage, setStatusMessage] = useState(null);
 
-  const [selectedEvent, setSelectedEvent] = useState(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -60,6 +61,17 @@ export function EventsManagement() {
     setStatusMessage(null);
     setActionError(null);
   };
+
+  const handleViewEvent = useCallback(
+    (event) => {
+      const identifier = event?.nombreEvento;
+      if (!identifier) {
+        return;
+      }
+      navigate(`/eventos/${encodeURIComponent(identifier)}`);
+    },
+    [navigate]
+  );
 
   const handleCreateDialogChange = (open) => {
     setIsCreateDialogOpen(open);
@@ -146,20 +158,6 @@ export function EventsManagement() {
             return event;
           })
         );
-        setSelectedEvent((current) => {
-          if (!current) {
-            return current;
-          }
-          const currentKey = getEventKey(current);
-          const updatedKey = getEventKey(updated);
-          if (
-            currentKey === updatedKey ||
-            current.nombreEvento === updated.nombreEvento
-          ) {
-            return updated;
-          }
-          return current;
-        });
       } else {
         await fetchEvents();
       }
@@ -201,9 +199,6 @@ export function EventsManagement() {
       setEvents((prev) =>
         prev.filter((item) => item.nombreEvento !== identifier)
       );
-      setSelectedEvent((current) =>
-        current && current.nombreEvento === identifier ? null : current
-      );
       setStatusMessage("Evento eliminado exitosamente.");
     } catch (err) {
       const message =
@@ -226,10 +221,6 @@ export function EventsManagement() {
     setEditingEvent(event);
     setIsEditDialogOpen(true);
   };
-
-  const closeSelectedEvent = useCallback(() => {
-    setSelectedEvent(null);
-  }, []);
 
   return (
     <div>
@@ -256,16 +247,10 @@ export function EventsManagement() {
           pastEvents={pastEvents}
           loading={loading}
           onOpenCreate={openCreateDialog}
-          onViewEvent={setSelectedEvent}
+          onViewEvent={handleViewEvent}
           onEditEvent={openEditDialog}
           onDeleteEvent={handleDeleteEvent}
           deletingKey={deletingKey}
-        />
-
-        <EventDetailsDialog
-          event={selectedEvent}
-          onClose={closeSelectedEvent}
-          onEdit={openEditDialog}
         />
 
         <EventEditDialog

@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import api from "@/lib/axios";
 
@@ -118,23 +118,25 @@ export default function UpcomingEvents() {
   }, [events]);
 
   return (
-    <section>
-      <div className="container px-6">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">
+    <section className="py-10">
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+        <h2 className="mb-6 text-center text-2xl font-bold text-slate-800 sm:text-left">
           Proximos eventos
         </h2>
 
         {loading && (
-          <p className="text-slate-600">Cargando eventos...</p>
+          <p className="text-center text-slate-600 sm:text-left">
+            Cargando eventos...
+          </p>
         )}
 
         {!loading && error && (
-          <p className="text-destructive">{error}</p>
+          <p className="text-center text-destructive sm:text-left">{error}</p>
         )}
 
         {!loading && !error && (
           upcomingEvents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {upcomingEvents.map((event) => (
                 <EventCard
                   key={event.key}
@@ -147,7 +149,7 @@ export default function UpcomingEvents() {
               ))}
             </div>
           ) : (
-            <p className="text-slate-600">
+            <p className="text-center text-slate-600 sm:text-left">
               No hay eventos programados proximamente. Vuelve mas tarde.
             </p>
           )
