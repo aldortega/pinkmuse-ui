@@ -1,6 +1,5 @@
 import RegisterForm from "@/components/auth/RegisterForm";
-import LoginHero from "../components/auth/LoginHero";
-
+import LoginHero from "@/components/auth/LoginHero";
 export default function RegisterPage() {
   return (
     <div className="h-[100dvh] overflow-hidden bg-pink-100 font-sans">
