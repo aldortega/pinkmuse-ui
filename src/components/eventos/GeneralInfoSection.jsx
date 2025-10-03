@@ -1,4 +1,4 @@
-import { EVENT_STATUS_OPTIONS } from "./eventForm.utils";
+﻿import { EVENT_STATUS_OPTIONS } from "./eventForm.utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -8,8 +8,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { buildImageUrl } from "@/lib/imageService";
 
-export default function GeneralInfoSection({ data, onFieldChange, isEditing }) {
+export default function GeneralInfoSection({
+  data,
+  onFieldChange,
+  isEditing,
+  onImageUpload,
+  isUploadingImage,
+  imageUploadError,
+}) {
+  const previewUrl = buildImageUrl(data.imagenPrincipal);
+
+  const handleFileInput = (event) => {
+    if (!onImageUpload) {
+      return;
+    }
+    const file = event.target.files?.[0];
+    if (file) {
+      onImageUpload(file);
+    }
+    event.target.value = "";
+  };
+
   return (
     <section className="grid gap-4 md:grid-cols-2">
       <div className="space-y-2">
@@ -81,16 +102,49 @@ export default function GeneralInfoSection({ data, onFieldChange, isEditing }) {
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2 md:col-span-2">
         <Label className="text-slate-800" htmlFor="imagenPrincipal">
-          Imagen principal (URL)
+          Imagen principal
         </Label>
         <Input
           id="imagenPrincipal"
           value={data.imagenPrincipal}
           onChange={(e) => onFieldChange("imagenPrincipal", e.target.value)}
-          placeholder="https://..."
+          placeholder="Pega una URL o sube una imagen"
         />
+        <div className="flex flex-wrap items-center gap-3">
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleFileInput}
+            className="max-w-xs"
+          />
+          {isUploadingImage && (
+            <span className="text-sm text-slate-600">
+              Subiendo imagen...
+            </span>
+          )}
+        </div>
+        {imageUploadError && (
+          <p className="text-sm text-red-600">{imageUploadError}</p>
+        )}
+        {previewUrl && (
+          <div className="rounded-md border border-slate-200 p-3">
+            <p className="mb-2 text-xs font-medium uppercase text-slate-500">
+              Vista previa
+            </p>
+            <img
+              src={previewUrl}
+              alt="Vista previa del evento"
+              className="h-40 w-full rounded-md object-cover"
+              loading="lazy"
+            />
+          </div>
+        )}
+        <p className="text-xs text-slate-500">
+          Si subes una imagen, guardaremos la ruta devuelta por el servicio y la
+          mostraremos en la tarjeta del evento.
+        </p>
       </div>
     </section>
   );

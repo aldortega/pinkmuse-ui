@@ -4,6 +4,7 @@ import api from "@/lib/axios";
 
 import { getEventKey, splitEventsByDate } from "../eventos/eventManagement.utils";
 import { EventCard } from "./EventCard";
+import { buildImageUrl } from "@/lib/imageService";
 
 const FALLBACK_IMAGE = "/brazos.png";
 
@@ -103,13 +104,15 @@ export default function UpcomingEvents() {
         .filter(Boolean)
         .join("-") || `upcoming-${index}`;
 
+      const imageUrl = buildImageUrl(event?.imagenPrincipal);
+
       return {
         key: getEventKey(event) || fallbackKey,
         title: event?.nombreEvento || "Evento sin titulo",
         date: formatEventDate(event?.fecha),
         time: event?.hora || null,
         location: buildEventLocation(event),
-        image: event?.imagenPrincipal || FALLBACK_IMAGE,
+        image: imageUrl || FALLBACK_IMAGE,
       };
     });
   }, [events]);

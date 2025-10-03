@@ -1,4 +1,5 @@
 ﻿import { useCallback, useEffect, useState } from "react";
+import { uploadEventImage } from "@/lib/imageService";
 import GeneralInfoSection from "./GeneralInfoSection";
 import AddressSection from "./AddressSection";
 import TicketsSection from "./TicketsSection";
@@ -20,6 +21,8 @@ export function EventForm({
   const [formData, setFormData] = useState(() =>
     buildInitialState(initialData)
   );
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState(null);
 
   useEffect(() => {
     setFormData(buildInitialState(initialData));
@@ -73,6 +76,38 @@ export function EventForm({
     }));
   }, []);
 
+  const handleImageUpload = useCallback(
+    async (file) => {
+      if (!file) {
+        return;
+      }
+      setImageUploadError(null);
+      setIsUploadingImage(true);
+      try {
+        const uploaded = await uploadEventImage(
+          file,
+          formData?.nombreEvento
+        );
+        if (uploaded) {
+          const imagePath = uploaded.webp || uploaded.png || uploaded.url || "";
+          if (imagePath) {
+            updateField("imagenPrincipal", imagePath);
+          }
+        }
+      } catch (error) {
+        console.error("Error al subir la imagen del evento:", error);
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "No pudimos subir la imagen. Intenta nuevamente.";
+        setImageUploadError(message);
+      } finally {
+        setIsUploadingImage(false);
+      }
+    },
+    [formData?.nombreEvento, updateField]
+  );
+
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
@@ -112,6 +147,9 @@ export function EventForm({
         data={formData}
         onFieldChange={updateField}
         isEditing={isEditing}
+        onImageUpload={handleImageUpload}
+        isUploadingImage={isUploadingImage}
+        imageUploadError={imageUploadError}
       />
       <AddressSection
         direccion={formData.direccion}

@@ -1,6 +1,7 @@
 ﻿import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { buildImageUrl } from "@/lib/imageService";
 import { Calendar, MapPin, Clock, Edit, Ticket, Users } from "lucide-react";
 
 const formatDate = (value) => {
@@ -68,12 +69,13 @@ export function EventDetails({ event, onEdit }) {
   const fecha = formatDate(event?.fecha);
   const lugar = buildLugar(event);
   const entradas = formatEntradas(event?.entradas);
+  const imageUrl = buildImageUrl(event?.imagenPrincipal) || "/imagen4.png";
 
   return (
     <div className="space-y-6">
       <div className="relative">
         <img
-          src={event?.imagenPrincipal || "/imagen4.png"}
+          src={imageUrl}
           alt={event?.nombreEvento || "Evento"}
           className="w-full h-64 object-cover rounded-lg"
         />

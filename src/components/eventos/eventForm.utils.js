@@ -1,4 +1,26 @@
-﻿export const EVENT_STATUS_OPTIONS = [
+﻿const resolveImageValue = (value) => {
+  if (!value) {
+    return "";
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value) && value.length > 0) {
+    return resolveImageValue(value[0]);
+  }
+  if (typeof value === "object") {
+    return (
+      value.webp ||
+      value.png ||
+      value.url ||
+      value.path ||
+      ""
+    );
+  }
+  return "";
+};
+
+export const EVENT_STATUS_OPTIONS = [
   { value: "programado", label: "Programado" },
   { value: "pospuesto", label: "Pospuesto" },
   { value: "cancelado", label: "Cancelado" },
@@ -32,13 +54,15 @@ export const buildInitialState = (data) => {
     ? data.artistasExtras
     : [];
 
+  const imagenPrincipal = resolveImageValue(data?.imagenPrincipal ?? data?.image);
+
   return {
     nombreEvento: data?.nombreEvento ?? data?.title ?? "",
     nombreLugar: data?.nombreLugar ?? data?.location ?? "",
     fecha: data?.fecha ?? data?.date ?? "",
     hora: data?.hora ?? data?.time ?? "",
     estado: data?.estado ?? data?.status ?? "programado",
-    imagenPrincipal: data?.imagenPrincipal ?? data?.image ?? "",
+    imagenPrincipal,
     direccion: {
       calle: direccion?.calle ?? "",
       numero:
@@ -85,6 +109,11 @@ const normalizeEntradas = (entradas) =>
     estado: entrada.estado,
   }));
 
+const normalizeImagenPrincipal = (imagen) => {
+  const value = resolveImageValue(imagen);
+  return value.trim() || null;
+};
+
 export const buildSubmissionArtifacts = (formData, isEditing) => {
   const payload = {
     nombreEvento: formData.nombreEvento.trim(),
@@ -92,7 +121,7 @@ export const buildSubmissionArtifacts = (formData, isEditing) => {
     fecha: formData.fecha,
     hora: formData.hora,
     estado: formData.estado,
-    imagenPrincipal: formData.imagenPrincipal.trim() || null,
+    imagenPrincipal: normalizeImagenPrincipal(formData.imagenPrincipal),
     direccion: normalizeDireccion(formData.direccion),
     entradas: normalizeEntradas(formData.entradas),
     artistasExtras: formData.artistasExtras,

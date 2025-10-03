@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Clock, Edit, Trash2, Ticket } from "lucide-react";
+import { buildImageUrl } from "@/lib/imageService";
 
 const formatDate = (value) => {
   if (!value) {
@@ -76,6 +77,7 @@ export function EventCard({
   const lugar = buildLugar(event);
   const precioDesde = getPrecioDesde(event?.entradas);
   const entradasDisponibles = getEntradasDisponibles(event?.entradas);
+  const imageUrl = buildImageUrl(event?.imagenPrincipal) || "/imagen4.png";
 
   return (
     <Card
@@ -85,7 +87,7 @@ export function EventCard({
       <CardHeader className="p-0">
         <div className="relative">
           <img
-            src={event?.imagenPrincipal || "/imagen4.png"}
+            src={imageUrl}
             alt={event?.nombreEvento || "Evento"}
             className="w-full h-48 object-cover rounded-t-lg"
           />
