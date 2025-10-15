@@ -1,21 +1,26 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-
-import api from "@/lib/axios";
+import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import api from "@/lib/axios";
 import { Header } from "../home/Header";
 import { EventCategoryTabs } from "./EventCategoryTabs";
 import { EventEditDialog } from "./EventEditDialog";
 import { EventManagementHeader } from "./EventManagementHeader";
 import { EventsFeedback } from "./EventsFeedback";
 import { getEventKey, splitEventsByDate } from "./eventManagement.utils";
+import { useEvents } from "@/contexts/EventContext";
 
 export function EventsManagement() {
   const navigate = useNavigate();
+  const {
+    events,
+    loading: eventsLoading,
+    error: eventsError,
+    refetch,
+    upsertEvent,
+    removeEvent,
+  } = useEvents();
 
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [listError, setListError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [statusMessage, setStatusMessage] = useState(null);
 
@@ -29,38 +34,15 @@ export function EventsManagement() {
   const [createError, setCreateError] = useState(null);
   const [editError, setEditError] = useState(null);
 
-  const fetchEvents = useCallback(async () => {
-    setLoading(true);
-    setListError(null);
-    try {
-      const response = await api.get("/eventos");
-      const fetched = Array.isArray(response?.data?.data)
-        ? response.data.data
-        : [];
-      setEvents(fetched);
-    } catch (err) {
-      const message =
-        err?.response?.data?.message || "No pudimos obtener los eventos.";
-      setListError(message);
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
-
   const { upcomingEvents, pastEvents } = useMemo(
     () => splitEventsByDate(events),
     [events]
   );
 
-  const resetFeedback = () => {
+  const resetFeedback = useCallback(() => {
     setStatusMessage(null);
     setActionError(null);
-  };
+  }, []);
 
   const handleViewEvent = useCallback(
     (event) => {
@@ -93,23 +75,17 @@ export function EventsManagement() {
     resetFeedback();
     setIsCreateSubmitting(true);
 
-    console.log("POST /eventos payload:", payload);
-
     try {
       const response = await api.post("/eventos", payload);
       const created = response?.data?.data;
       if (created) {
-        setEvents((prev) => [...prev, created]);
+        upsertEvent(created);
       } else {
-        await fetchEvents();
+        await refetch();
       }
       setStatusMessage("Evento creado exitosamente.");
       setIsCreateDialogOpen(false);
     } catch (err) {
-      console.error(
-        "Error recibido al crear evento:",
-        err?.response?.data || err
-      );
       const responseData = err?.response?.data;
       const validationErrors = responseData?.errors;
       let detailedMessage = null;
@@ -128,15 +104,13 @@ export function EventsManagement() {
   };
 
   const handleEditEvent = async (payload) => {
-    if (!editingEvent) {
+    const identifier = editingEvent?.nombreEvento;
+    if (!identifier) {
       return;
     }
     setEditError(null);
     resetFeedback();
     setIsEditSubmitting(true);
-    const identifier = editingEvent.nombreEvento;
-
-    console.log("PUT /eventos payload:", identifier, payload);
 
     try {
       const response = await api.put(
@@ -145,30 +119,15 @@ export function EventsManagement() {
       );
       const updated = response?.data?.data;
       if (updated) {
-        setEvents((prev) =>
-          prev.map((event) => {
-            const eventKey = getEventKey(event);
-            const updatedKey = getEventKey(updated);
-            if (eventKey === updatedKey) {
-              return updated;
-            }
-            if (event.nombreEvento === updated.nombreEvento) {
-              return updated;
-            }
-            return event;
-          })
-        );
+        upsertEvent(updated);
+        setEditingEvent(updated);
       } else {
-        await fetchEvents();
+        await refetch();
       }
       setStatusMessage("Evento actualizado exitosamente.");
       setIsEditDialogOpen(false);
       setEditingEvent(null);
     } catch (err) {
-      console.error(
-        "Error recibido al actualizar evento:",
-        err?.response?.data || err
-      );
       const responseData = err?.response?.data;
       const validationErrors = responseData?.errors;
       let detailedMessage = null;
@@ -196,9 +155,7 @@ export function EventsManagement() {
     setDeletingKey(key);
     try {
       await api.delete(`/eventos/${encodeURIComponent(identifier)}`);
-      setEvents((prev) =>
-        prev.filter((item) => item.nombreEvento !== identifier)
-      );
+      removeEvent(event);
       setStatusMessage("Evento eliminado exitosamente.");
     } catch (err) {
       const message =
@@ -238,14 +195,14 @@ export function EventsManagement() {
 
         <EventsFeedback
           statusMessage={statusMessage}
-          listError={listError}
+          listError={eventsError}
           actionError={actionError}
         />
 
         <EventCategoryTabs
           upcomingEvents={upcomingEvents}
           pastEvents={pastEvents}
-          loading={loading}
+          loading={eventsLoading}
           onOpenCreate={openCreateDialog}
           onViewEvent={handleViewEvent}
           onEditEvent={openEditDialog}

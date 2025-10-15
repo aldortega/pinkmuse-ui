@@ -9,33 +9,110 @@ import { EventDetails } from "@/components/eventos/EventDetails";
 import { EventEditDialog } from "@/components/eventos/EventEditDialog";
 import { EventsFeedback } from "@/components/eventos/EventsFeedback";
 import { Card, CardContent } from "@/components/ui/card";
+import { useEvents } from "@/contexts/EventContext";
 
 export default function EventDetailsPage() {
   const params = useParams();
   const navigate = useNavigate();
 
-  const decodedIdentifier = useMemo(() => {
-    const value = params?.nombreEvento ?? "";
-    if (!value) {
-      return "";
-    }
-    try {
-      return decodeURIComponent(value);
-    } catch {
-      return value;
-    }
-  }, [params?.nombreEvento]);
+  const {
+    loading: eventsLoading,
+    error: eventsError,
+    getEventBySlug,
+    upsertEvent,
+  } = useEvents();
 
-  const apiIdentifier = useMemo(() => {
-    if (!decodedIdentifier) {
-      return "";
-    }
-    return encodeURIComponent(decodedIdentifier);
-  }, [decodedIdentifier]);
+  const slug = params?.nombreEvento ?? "";
 
-  const [event, setEvent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [listError, setListError] = useState(null);
+  const contextEvent = useMemo(
+    () => (slug ? getEventBySlug(slug) : null),
+    [slug, getEventBySlug]
+  );
+
+  const [fallbackEvent, setFallbackEvent] = useState(null);
+  const [fallbackError, setFallbackError] = useState(null);
+  const [isFallbackLoading, setIsFallbackLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    setFallbackEvent(null);
+    setFallbackError(null);
+
+    if (!slug) {
+      setFallbackError("Evento no especificado.");
+      return () => {
+        active = false;
+      };
+    }
+
+    if (contextEvent) {
+      return () => {
+        active = false;
+      };
+    }
+
+    if (eventsLoading) {
+      return () => {
+        active = false;
+      };
+    }
+
+    if (eventsError) {
+      setFallbackError(eventsError);
+      return () => {
+        active = false;
+      };
+    }
+
+    const fetchEvent = async () => {
+      setIsFallbackLoading(true);
+      try {
+        let decodedSlug = slug;
+        try {
+          decodedSlug = decodeURIComponent(slug);
+        } catch {
+          decodedSlug = slug;
+        }
+
+        const response = await api.get(`/eventos/${encodeURIComponent(decodedSlug)}`);
+        if (!active) {
+          return;
+        }
+
+        const data = response?.data?.data ?? null;
+        if (data) {
+          setFallbackEvent(data);
+          upsertEvent(data);
+        } else {
+          setFallbackError("No pudimos obtener los datos del evento.");
+        }
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+        const message =
+          error?.response?.data?.message ||
+          "No pudimos obtener la informacion del evento.";
+        setFallbackError(message);
+      } finally {
+        if (active) {
+          setIsFallbackLoading(false);
+        }
+      }
+    };
+
+    fetchEvent();
+
+    return () => {
+      active = false;
+    };
+  }, [slug, contextEvent, eventsLoading, eventsError, upsertEvent]);
+
+  const event = contextEvent || fallbackEvent;
+  const loading = eventsLoading || isFallbackLoading;
+  const listError = eventsError || fallbackError;
+
   const [statusMessage, setStatusMessage] = useState(null);
   const [actionError, setActionError] = useState(null);
 
@@ -43,41 +120,6 @@ export default function EventDetailsPage() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [editError, setEditError] = useState(null);
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
-
-  const fetchEvent = useCallback(async () => {
-    if (!apiIdentifier) {
-      setEvent(null);
-      setLoading(false);
-      setListError("Evento no especificado.");
-      return;
-    }
-
-    setLoading(true);
-    setListError(null);
-    try {
-      const response = await api.get(`/eventos/${apiIdentifier}`);
-      const data = response?.data?.data ?? null;
-      if (!data) {
-        setEvent(null);
-        setListError("No pudimos obtener los datos del evento.");
-        return;
-      }
-      setEvent(data);
-      setListError(null);
-    } catch (error) {
-      const message =
-        error?.response?.data?.message ||
-        "No pudimos obtener la informacion del evento.";
-      setListError(message);
-      setEvent(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [apiIdentifier]);
-
-  useEffect(() => {
-    fetchEvent();
-  }, [fetchEvent]);
 
   const resetFeedback = useCallback(() => {
     setStatusMessage(null);
@@ -111,7 +153,7 @@ export default function EventDetailsPage() {
 
   const handleEditEvent = useCallback(
     async (payload) => {
-      if (!event?.nombreEvento) {
+      if (!editingEvent?.nombreEvento) {
         return;
       }
       setEditError(null);
@@ -119,14 +161,12 @@ export default function EventDetailsPage() {
       setIsEditSubmitting(true);
       try {
         const response = await api.put(
-          `/eventos/${encodeURIComponent(event.nombreEvento)}`,
+          `/eventos/${encodeURIComponent(editingEvent.nombreEvento)}`,
           payload
         );
         const updated = response?.data?.data;
         if (updated) {
-          setEvent(updated);
-        } else {
-          await fetchEvent();
+          upsertEvent(updated);
         }
         setStatusMessage("Evento actualizado exitosamente.");
         setIsEditDialogOpen(false);
@@ -150,7 +190,7 @@ export default function EventDetailsPage() {
         setIsEditSubmitting(false);
       }
     },
-    [event?.nombreEvento, fetchEvent, resetFeedback]
+    [editingEvent, resetFeedback, upsertEvent]
   );
 
   return (
@@ -192,7 +232,7 @@ export default function EventDetailsPage() {
 
         {!loading && !event && !listError && (
           <Card className="bg-red-50">
-            <CardContent className="py-12 text-center space-y-3">
+            <CardContent className="space-y-3 py-12 text-center">
               <p className="text-lg font-semibold text-slate-800">
                 No encontramos informacion para este evento.
               </p>
