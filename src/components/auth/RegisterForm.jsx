@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Eye, EyeOff, Mail, Lock, User, Calendar, Globe } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, Calendar } from "lucide-react";
 import api from "@/lib/axios";
 import CountryCombobox from "@/components/ui/CountryCombobox";
 
@@ -34,8 +34,8 @@ export default function RegisterForm() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError("");
     setSuccess("");
     setLoading(true);
@@ -58,10 +58,10 @@ export default function RegisterForm() {
       const { data } = await api.post("/registro", payload);
 
       if (data?.status && data?.status >= 200 && data?.status < 300) {
-        setSuccess("Registro exitoso. Ahora podes iniciar sesión.");
+        setSuccess("Registro exitoso. Ahora podes iniciar sesion.");
         setTimeout(() => navigate("/"), 800);
       } else {
-        setError(data?.message || "Ocurrió un error en el registro.");
+        setError(data?.message || "Ocurrio un error en el registro.");
       }
     } catch (err) {
       const msg =
@@ -137,7 +137,6 @@ export default function RegisterForm() {
               </div>
             </div>
 
-            {/* Username */}
             <div className="space-y-2">
               <Label className="text-gray-700" htmlFor="username">
                 Nombre de usuario
@@ -158,7 +157,6 @@ export default function RegisterForm() {
               </div>
             </div>
 
-            {/* Email */}
             <div className="space-y-2">
               <Label className="text-gray-700" htmlFor="email">
                 Correo electrónico

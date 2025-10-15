@@ -21,8 +21,8 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError("");
     setLoading(true);
     try {
@@ -33,18 +33,18 @@ export default function LoginForm() {
           try {
             localStorage.setItem("authUser", JSON.stringify(data.user));
           } catch {
-            e;
+            // ignore storage errors
           }
         }
         navigate("/home");
       } else {
-        setError("Credenciales inválidas o respuesta inesperada.");
+        setError("Credenciales invalidas o respuesta inesperada.");
       }
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
         err?.message ||
-        "Error al iniciar sesión.";
+        "Error al iniciar sesion.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -72,7 +72,6 @@ export default function LoginForm() {
                 {error}
               </div>
             ) : null}
-            {/* email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700">
                 Correo electrónico
@@ -91,7 +90,6 @@ export default function LoginForm() {
               </div>
             </div>
 
-            {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-700">
                 Contraseña
@@ -141,7 +139,6 @@ export default function LoginForm() {
               </a>
             </div>
 
-            {/* botnn */}
             <Button
               type="submit"
               disabled={loading}

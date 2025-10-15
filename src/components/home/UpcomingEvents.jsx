@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
-import api from "@/lib/axios";
-
+import { useEvents } from "@/contexts/EventContext";
 import { getEventKey, splitEventsByDate } from "../eventos/eventManagement.utils";
 import { EventCard } from "./EventCard";
 import { buildImageUrl } from "@/lib/imageService";
@@ -50,64 +49,20 @@ const buildEventLocation = (event) => {
 };
 
 export default function UpcomingEvents() {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchUpcomingEvents = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await api.get("/eventos");
-        if (!isMounted) {
-          return;
-        }
-        const fetched = Array.isArray(response?.data?.data)
-          ? response.data.data
-          : [];
-        setEvents(fetched);
-      } catch (err) {
-        if (!isMounted) {
-          return;
-        }
-        const message =
-          err?.response?.data?.message ||
-          "No pudimos obtener los eventos proximos.";
-        setError(message);
-        setEvents([]);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchUpcomingEvents();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { events, loading, error } = useEvents();
 
   const upcomingEvents = useMemo(() => {
     const { upcomingEvents: sortedUpcoming } = splitEventsByDate(events);
     return sortedUpcoming.slice(0, 3).map((event, index) => {
-      const fallbackKey = [
-        event?.nombreEvento,
-        event?._id,
-        event?.id,
-        event?.fecha,
-      ]
-        .filter(Boolean)
-        .join("-") || `upcoming-${index}`;
+      const fallbackKey =
+        getEventKey(event) ||
+        [event?.nombreEvento, event?._id, event?.fecha].filter(Boolean).join("-") ||
+        `upcoming-${index}`;
 
       const imageUrl = buildImageUrl(event?.imagenPrincipal);
 
       return {
-        key: getEventKey(event) || fallbackKey,
+        key: fallbackKey,
         title: event?.nombreEvento || "Evento sin titulo",
         date: formatEventDate(event?.fecha),
         time: event?.hora || null,
