@@ -1,0 +1,492 @@
+import { useCallback, useMemo, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
+
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+
+const buildInitialState = () => ({
+  titulo: "",
+  descripcion: "",
+  resumen: "",
+  fecha: "",
+  imagenPrincipal: "",
+  imagenes: [""],
+  autor: "",
+  categoria: "",
+  fuente: "",
+  etiquetas: "",
+  habilitacionComentarios: true,
+  habilitacionAcciones: true,
+});
+
+const sanitizeImages = (imagenes = []) =>
+  imagenes.map((item) => item.trim()).filter((item) => item.length > 0);
+
+const sanitizeTags = (value) =>
+  value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
+const buildPayload = (state) => {
+  const gallery = sanitizeImages(state.imagenes);
+  const payload = {
+    tipoActividad: "noticia",
+    titulo: state.titulo.trim(),
+    descripcion: state.descripcion.trim(),
+    fecha: state.fecha ? new Date(state.fecha).toISOString() : null,
+    imagenPrincipal: state.imagenPrincipal.trim() || null,
+    imagenes: gallery.length > 0 ? gallery : null,
+    habilitacionComentarios: Boolean(state.habilitacionComentarios),
+    habilitacionAcciones: state.habilitacionAcciones ? "si" : "no",
+  };
+
+  if (state.resumen.trim()) {
+    payload.resumen = state.resumen.trim();
+  }
+  if (state.autor.trim()) {
+    payload.autor = state.autor.trim();
+  }
+  if (state.categoria.trim()) {
+    payload.categoria = state.categoria.trim();
+  }
+  if (state.fuente.trim()) {
+    payload.fuente = state.fuente.trim();
+  }
+  const tags = sanitizeTags(state.etiquetas);
+  if (tags.length > 0) {
+    payload.etiquetas = tags;
+  }
+
+  return payload;
+};
+
+// const Divider = () => (
+//   <div
+//     aria-hidden="true"
+//     className="h-px w-full bg-gradient-to-r from-transparent via-slate-100 to-transparent"
+//   />
+// );
+
+const panelClassName =
+  "rounded-2xl border border-border bg-card p-6 shadow-sm";
+const fieldInputClassName = "rounded-lg";
+const actionButtonClassName = "rounded-full";
+const primaryButtonClassName = `${actionButtonClassName} bg-primary text-primary-foreground shadow-sm transition hover:bg-primary/90`;
+const secondaryButtonClassName = `${actionButtonClassName} border border-border bg-background text-foreground transition hover:bg-accent hover:text-accent-foreground`;
+
+export default function NewsForm({
+  onSubmit,
+  isSubmitting = false,
+  apiError = null,
+}) {
+  const [state, setState] = useState(buildInitialState);
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState(null);
+
+  const clientValidate = useCallback((nextState) => {
+    const validationErrors = {};
+    if (!nextState.titulo.trim()) {
+      validationErrors.titulo = "El titulo es obligatorio.";
+    }
+    if (!nextState.descripcion.trim()) {
+      validationErrors.descripcion = "La descripcion es obligatoria.";
+    }
+    if (!nextState.fecha) {
+      validationErrors.fecha = "Selecciona una fecha.";
+    }
+    return validationErrors;
+  }, []);
+
+  const handleFieldChange = useCallback((field, value) => {
+    setState((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  }, []);
+
+  const handleImageChange = useCallback((index, value) => {
+    setState((prev) => {
+      const next = [...prev.imagenes];
+      next[index] = value;
+      return { ...prev, imagenes: next };
+    });
+  }, []);
+
+  const addGalleryImage = useCallback(() => {
+    setState((prev) => ({ ...prev, imagenes: [...prev.imagenes, ""] }));
+  }, []);
+
+  const removeGalleryImage = useCallback((index) => {
+    setState((prev) => {
+      const next = prev.imagenes.filter((_, idx) => idx !== index);
+      return { ...prev, imagenes: next.length > 0 ? next : [""] };
+    });
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
+      setSubmitError(null);
+
+      const validationErrors = clientValidate(state);
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
+
+      try {
+        await onSubmit(buildPayload(state));
+        setState(buildInitialState());
+      } catch (err) {
+        setSubmitError(err?.message || "No pudimos crear la noticia.");
+      }
+    },
+    [clientValidate, onSubmit, state]
+  );
+
+  const feedbackMessage = useMemo(() => {
+    if (submitError) {
+      return submitError;
+    }
+    if (apiError) {
+      return apiError;
+    }
+    return null;
+  }, [apiError, submitError]);
+
+  return (
+    <div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <section className={panelClassName}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-foreground">
+              Detalles principales
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Define el titulo, fecha y atributos clave que se mostraran en la
+              portada y en la tarjeta de noticia.
+            </p>
+            {feedbackMessage && (
+              <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-destructive">
+                {feedbackMessage}
+              </div>
+            )}
+          </div>
+          {/* <Divider /> */}
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="titulo">Titulo</Label>
+              <Input
+                id="titulo"
+                value={state.titulo}
+                onChange={(event) =>
+                  handleFieldChange("titulo", event.target.value)
+                }
+                placeholder="Ingresa el titulo principal"
+                aria-invalid={errors.titulo ? "true" : "false"}
+                disabled={isSubmitting}
+                className={fieldInputClassName}
+              />
+              {errors.titulo && (
+                <p className="text-xs font-medium text-destructive">
+                  {errors.titulo}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fecha">Fecha de publicacion</Label>
+              <Input
+                id="fecha"
+                type="date"
+                value={state.fecha}
+                onChange={(event) =>
+                  handleFieldChange("fecha", event.target.value)
+                }
+                aria-invalid={errors.fecha ? "true" : "false"}
+                disabled={isSubmitting}
+                className={fieldInputClassName}
+              />
+              {errors.fecha && (
+                <p className="text-xs font-medium text-destructive">
+                  {errors.fecha}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="autor">Autor</Label>
+              <Input
+                id="autor"
+                value={state.autor}
+                onChange={(event) =>
+                  handleFieldChange("autor", event.target.value)
+                }
+                placeholder="Nombre de quien escribe"
+                disabled={isSubmitting}
+                className={fieldInputClassName}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="categoria">Categoria</Label>
+              <Input
+                id="categoria"
+                value={state.categoria}
+                onChange={(event) =>
+                  handleFieldChange("categoria", event.target.value)
+                }
+                placeholder="Ej. Comunidad, Lanzamientos"
+                disabled={isSubmitting}
+                className={fieldInputClassName}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className={panelClassName}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-foreground">Contenido</h2>
+            <p className="text-sm text-muted-foreground">
+              Escribe el cuerpo completo de la noticia y un resumen breve para
+              destacar la informacion clave.
+            </p>
+          </div>
+          {/* <Divider /> */}
+          <div className="mt-6 space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="resumen">Resumen</Label>
+              <Textarea
+                id="resumen"
+                value={state.resumen}
+                onChange={(event) =>
+                  handleFieldChange("resumen", event.target.value)
+                }
+                placeholder="Introduce un resumen corto para la tarjeta y la vista previa"
+                rows={3}
+                disabled={isSubmitting}
+                className={fieldInputClassName}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="descripcion">Contenido principal</Label>
+              <Textarea
+                id="descripcion"
+                value={state.descripcion}
+                onChange={(event) =>
+                  handleFieldChange("descripcion", event.target.value)
+                }
+                placeholder="Escribe el cuerpo de la noticia"
+                rows={10}
+                aria-invalid={errors.descripcion ? "true" : "false"}
+                disabled={isSubmitting}
+                className={fieldInputClassName}
+              />
+              {errors.descripcion && (
+                <p className="text-xs font-medium text-destructive">
+                  {errors.descripcion}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className={panelClassName}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-foreground">Imagenes</h2>
+            <p className="text-sm text-muted-foreground">
+              Define la imagen principal y agrega recursos complementarios para
+              enriquecer el articulo.
+            </p>
+          </div>
+          {/* <Divider /> */}
+          <div className="mt-6 space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="imagenPrincipal">Imagen principal</Label>
+              <Input
+                id="imagenPrincipal"
+                value={state.imagenPrincipal}
+                onChange={(event) =>
+                  handleFieldChange("imagenPrincipal", event.target.value)
+                }
+                placeholder="URL de la imagen principal"
+                disabled={isSubmitting}
+                className={fieldInputClassName}
+              />
+              <p className="text-xs text-muted-foreground">
+                Preferentemente un enlace horizontal (webp o jpg).
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <Label className="text-sm font-semibold text-foreground">
+                    Galeria (opcional)
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Agrega imagenes complementarias que apareceran dentro del
+                    articulo.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addGalleryImage}
+                  className={`${secondaryButtonClassName} gap-2`}
+                  disabled={isSubmitting}
+                >
+                  <Plus className="h-4 w-4" />
+                  Agregar imagen
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {state.imagenes.map((imagen, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-card p-3 sm:flex-row sm:items-center"
+                  >
+                    <Input
+                      value={imagen}
+                      onChange={(event) =>
+                        handleImageChange(index, event.target.value)
+                      }
+                      placeholder="URL de la imagen adicional"
+                      disabled={isSubmitting}
+                      className={fieldInputClassName}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeGalleryImage(index)}
+                      disabled={isSubmitting}
+                      className="self-end text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Eliminar imagen</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className={panelClassName}>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-foreground">
+              Metadatos y configuracion
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Clasifica la noticia y elige como pueden interactuar los lectores
+              con ella.
+            </p>
+          </div>
+          {/* <Divider /> */}
+          <div className="mt-6 space-y-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="etiquetas">Etiquetas</Label>
+                <Input
+                  id="etiquetas"
+                  value={state.etiquetas}
+                  onChange={(event) =>
+                    handleFieldChange("etiquetas", event.target.value)
+                  }
+                  placeholder="Ej. lanzamiento, comunidad"
+                  disabled={isSubmitting}
+                  className={fieldInputClassName}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Separa cada etiqueta con una coma.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="fuente">Fuente</Label>
+                <Input
+                  id="fuente"
+                  value={state.fuente}
+                  onChange={(event) =>
+                    handleFieldChange("fuente", event.target.value)
+                  }
+                  placeholder="URL o descripcion de la fuente"
+                  disabled={isSubmitting}
+                  className={fieldInputClassName}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4 shadow-sm">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    Permitir comentarios
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Habilita que la comunidad pueda opinar en esta noticia.
+                  </p>
+                </div>
+                <Switch
+                  checked={state.habilitacionComentarios}
+                  onCheckedChange={(value) =>
+                    handleFieldChange("habilitacionComentarios", value)
+                  }
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4 shadow-sm">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    Permitir reacciones
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Activa los likes y otras interacciones.
+                  </p>
+                </div>
+                <Switch
+                  checked={state.habilitacionAcciones}
+                  onCheckedChange={(value) =>
+                    handleFieldChange("habilitacionAcciones", value)
+                  }
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-6 shadow-sm shadow-slate-100/60 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted-foreground">
+            Revisa la informacion antes de publicar. Podras editar la noticia
+            desde el panel cuando sea necesario.
+          </p>
+          <Button
+            type="submit"
+            variant="default"
+            className={primaryButtonClassName}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Creando noticia..." : "Publicar noticia"}
+          </Button>
+        </div>
+
+        {submitError && (
+          <p className="text-sm font-medium text-destructive">{submitError}</p>
+        )}
+      </form>
+    </div>
+  );
+}
+
+
+
+
+

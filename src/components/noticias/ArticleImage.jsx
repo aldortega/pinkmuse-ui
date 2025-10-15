@@ -1,11 +1,20 @@
-export default function ArticleImage({ src, alt, caption }) {
+import { cn } from "@/lib/utils";
+
+export default function ArticleImage({
+  src,
+  alt,
+  caption,
+  className,
+  frameClassName,
+  imageClassName,
+}) {
   return (
-    <figure className="my-6 sm:my-8">
-      <div className="w-full overflow-hidden rounded-xl bg-gray-100">
+    <figure className={cn("my-6 sm:my-8", className)}>
+      <div className={cn("w-full overflow-hidden rounded-2xl bg-gray-100", frameClassName)}>
         <img
           src={src || "/placeholder.svg"}
           alt={alt}
-          className="h-56 w-full object-cover sm:h-auto"
+          className={cn("h-56 w-full object-cover sm:h-auto", imageClassName)}
         />
       </div>
       {caption && (
