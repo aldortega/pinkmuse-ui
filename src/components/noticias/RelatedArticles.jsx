@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function RelatedArticles({ items = [] }) {
@@ -31,15 +30,12 @@ export default function RelatedArticles({ items = [] }) {
                 <p className="line-clamp-2 text-sm font-semibold text-slate-800 transition-colors group-hover:text-rose-600">
                   {item.title}
                 </p>
-                {item.date && (
-                  <span className="mt-1 block text-xs text-slate-500">{item.date}</span>
+                {item.description && (
+                  <p className="line-clamp-2 text-xs text-slate-600 mt-1">
+                    {item.description}
+                  </p>
                 )}
               </div>
-
-              <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-rose-500">
-                Leer mas
-                <ArrowRight className="h-3 w-3" />
-              </span>
             </div>
           </Link>
         ))}

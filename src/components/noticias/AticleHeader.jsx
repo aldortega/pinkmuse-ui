@@ -26,7 +26,7 @@ export default function ArticleHeader({ title }) {
         </Link>
       </div>
 
-      <h1 className="text-center text-3xl font-bold leading-tight text-slate-900 sm:text-left sm:text-4xl md:text-5xl md:leading-tight">
+      <h1 className="text-3xl font-bold leading-tight text-slate-900 sm:text-left sm:text-4xl md:text-5xl md:leading-tight">
         {title}
       </h1>
     </div>
