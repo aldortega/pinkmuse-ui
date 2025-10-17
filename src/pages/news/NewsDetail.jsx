@@ -1,15 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+﻿import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Header from "@/components/home/Header";
 import Footer from "@/components/landing/Footer";
-import ArticleHeader from "@/components/noticias/AticleHeader";
-import ArticleLayout from "@/components/noticias/ArticleLayout";
-import ArticleImage from "@/components/noticias/ArticleImage";
-import ArticleContent from "@/components/noticias/ArticleContent";
-import ArticleMeta from "@/components/noticias/ArticleMeta";
-import ArticleShareBar from "@/components/noticias/ArticleShareBar";
-import RelatedArticles from "@/components/noticias/RelatedArticles";
+import NewsDetailContent from "@/components/news/newsdetail/NewsDetailContent";
 import api from "@/lib/axios";
 import { useNews } from "@/contexts/NewsContext";
 
@@ -47,6 +41,7 @@ export default function NewsDetailPage() {
     loading: newsLoading,
     error: newsError,
     getArticleBySlug,
+    deleteArticle,
   } = useNews();
 
   const articleFromContext = useMemo(
@@ -57,6 +52,10 @@ export default function NewsDetailPage() {
   const [fallbackArticle, setFallbackArticle] = useState(null);
   const [fallbackError, setFallbackError] = useState(null);
   const [isFallbackLoading, setIsFallbackLoading] = useState(false);
+  const [actionError, setActionError] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true;
@@ -93,7 +92,9 @@ export default function NewsDetailPage() {
         } catch {
           decodedSlug = slug;
         }
-        const response = await api.get(`/noticias/${encodeURIComponent(decodedSlug)}`);
+        const response = await api.get(
+          `/noticias/${encodeURIComponent(decodedSlug)}`
+        );
         if (!active) {
           return;
         }
@@ -131,6 +132,11 @@ export default function NewsDetailPage() {
   const combinedLoading = newsLoading || isFallbackLoading;
   const combinedError = fallbackError;
 
+  useEffect(() => {
+    setActionError(null);
+    setIsDeleting(false);
+  }, [article?.titulo, article?._id]);
+
   const formattedDate = useMemo(
     () => formatDate(article?.fecha),
     [article?.fecha]
@@ -155,10 +161,9 @@ export default function NewsDetailPage() {
 
   const relatedArticles = useMemo(() => {
     if (!article || !normalizedNews?.length) return [];
-    const currentSlug =
-      slug || (article?.titulo ? encodeURIComponent(article.titulo) : "");
-    return normalizedNews.filter((item) => item.slug !== currentSlug).slice(0, 3);
-  }, [article, normalizedNews, slug]);
+    const currentId = article._id || article.id;
+    return normalizedNews.filter((item) => item.id !== currentId).slice(0, 3);
+  }, [article, normalizedNews]);
 
   const articleSlug = useMemo(() => {
     if (slug) return slug;
@@ -166,101 +171,38 @@ export default function NewsDetailPage() {
     return "";
   }, [slug, article?.titulo]);
 
-  const author = article?.autor || article?.author;
-  const category = article?.categoria || article?.category;
-  const tags = article?.etiquetas || article?.tags || article?.temas || article?.keywords;
-  const sourceValue = article?.fuente || article?.source;
-  const isSourceLink =
-    sourceValue && typeof sourceValue === "string" && /^https?:\/\//i.test(sourceValue);
-  const hasSidebarContent = relatedArticles.length > 0 || Boolean(sourceValue);
+  const canEdit = Boolean(articleSlug);
+  const canDelete = Boolean(article?.titulo);
 
-  const renderContent = () => (
-    <ArticleLayout
-      header={
-        <>
-          <ArticleHeader
-            title={article.titulo}
-            publishedDate={formattedDate || article.fecha}
-            author={author}
-          />
-          <ArticleMeta
-            date={formattedDate || article.fecha}
-            author={author}
-            readTime={readingTime}
-            category={category}
-            tags={tags}
-          />
-        </>
-      }
-      sidebar={
-        hasSidebarContent ? (
-          <>
-            {relatedArticles.length > 0 && <RelatedArticles items={relatedArticles} />}
-            {sourceValue && (
-              <div className="rounded-2xl border border-rose-100/60 bg-white/90 p-5 text-sm text-slate-600 shadow-sm ring-1 ring-black/5 backdrop-blur-sm">
-                <h2 className="text-sm font-semibold text-slate-800">Fuente</h2>
-                {isSourceLink ? (
-                  <a
-                    href={sourceValue}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-flex text-sm font-semibold text-rose-600 hover:text-rose-500"
-                  >
-                    {sourceValue}
-                  </a>
-                ) : (
-                  <p className="mt-2">{sourceValue}</p>
-                )}
-              </div>
-            )}
-          </>
-        ) : null
-      }
-    >
-      <ArticleImage
-        src={article.imagenPrincipal}
-        alt={article.titulo}
-        className="my-0"
-        frameClassName="rounded-3xl"
-        imageClassName="max-h-[480px] w-full object-cover"
-      />
+  const handleEdit = () => {
+    if (!canEdit) {
+      return;
+    }
+    navigate(`/noticias/${articleSlug}/editar`);
+  };
 
-      <div className="rounded-3xl border border-slate-100 bg-white/90 p-6 shadow-sm ring-1 ring-black/5 backdrop-blur-sm sm:p-10">
-        <ArticleContent
-          className="px-0"
-          contentClassName="text-base leading-7 text-slate-700 sm:text-lg sm:leading-8"
-        >
-          {descriptionParagraphs.length > 0 ? (
-            descriptionParagraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)
-          ) : (
-            <p>{article.descripcion}</p>
-          )}
-        </ArticleContent>
-
-        {galleryImages.length > 0 && (
-          <div className="mt-10 space-y-4">
-            <h2 className="text-lg font-semibold text-slate-800">Galeria</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {galleryImages.map((image, index) => (
-                <ArticleImage
-                  key={image}
-                  src={image}
-                  alt={`${article.titulo} ${index + 1}`}
-                  className="my-0"
-                  frameClassName="rounded-2xl"
-                  imageClassName="h-48 w-full object-cover"
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-8">
-        <ArticleShareBar url={articleSlug ? `/noticias/${articleSlug}` : undefined} />
-      </div>
-    </ArticleLayout>
-  );
+  const handleDelete = async () => {
+    if (!canDelete || !article?.titulo) {
+      return;
+    }
+    const confirmed = window.confirm(
+      "Seguro que deseas eliminar esta noticia?"
+    );
+    if (!confirmed) {
+      return;
+    }
+    setIsDeleting(true);
+    setActionError(null);
+    try {
+      await deleteArticle(article.titulo);
+      navigate("/noticias");
+    } catch (err) {
+      const message = err?.message || "No fue posible eliminar la noticia.";
+      setActionError(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (combinedLoading) {
     return (
@@ -299,7 +241,21 @@ export default function NewsDetailPage() {
     <div>
       <Header />
       <main className="bg-gradient-to-b from-white via-rose-50/40 to-white">
-        {renderContent()}
+        <NewsDetailContent
+          article={article}
+          formattedDate={formattedDate}
+          readingTime={readingTime}
+          descriptionParagraphs={descriptionParagraphs}
+          galleryImages={galleryImages}
+          relatedArticles={relatedArticles}
+          articleSlug={articleSlug}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          isDeleting={isDeleting}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          actionError={actionError}
+        />
       </main>
       <Footer />
     </div>

@@ -56,6 +56,33 @@ const handleApiError = (err, fallbackMessage) => {
   throw error;
 };
 
+const matchesArticle = (current, reference, fallbackTitle) => {
+  if (!current) {
+    return false;
+  }
+
+  if (current._id && reference?._id && current._id === reference._id) {
+    return true;
+  }
+
+  if (current.id && reference?.id && current.id === reference.id) {
+    return true;
+  }
+
+  const currentTitle = current.titulo;
+  const referenceTitle = reference?.titulo;
+
+  if (currentTitle && referenceTitle && currentTitle === referenceTitle) {
+    return true;
+  }
+
+  if (fallbackTitle && currentTitle) {
+    return currentTitle === fallbackTitle;
+  }
+
+  return false;
+};
+
 export function NewsProvider({ children }) {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -141,10 +168,10 @@ export function NewsProvider({ children }) {
 
         if (created) {
           setArticles((prev) => {
-            if (!Array.isArray(prev) || prev.length === 0) {
-              return [created];
-            }
-            const filtered = prev.filter((item) => item?.titulo !== created.titulo);
+            const previous = Array.isArray(prev) ? prev : [];
+            const filtered = previous.filter(
+              (item) => !matchesArticle(item, created, created.titulo)
+            );
             return [created, ...filtered];
           });
         }
@@ -152,6 +179,55 @@ export function NewsProvider({ children }) {
         return created;
       } catch (err) {
         handleApiError(err, "No fue posible crear la noticia.");
+      }
+    },
+    []
+  );
+
+  const updateArticle = useCallback(
+    async (currentTitle, payload) => {
+      try {
+        const response = await api.put(
+          `/noticias/${encodeURIComponent(currentTitle)}`,
+          payload
+        );
+        const updated = response?.data?.data;
+
+        if (updated) {
+          setArticles((prev) => {
+            if (!Array.isArray(prev) || prev.length === 0) {
+              return [updated];
+            }
+            return prev.map((item) =>
+              matchesArticle(item, updated, currentTitle) ? updated : item
+            );
+          });
+        }
+
+        return updated;
+      } catch (err) {
+        handleApiError(err, "No fue posible actualizar la noticia.");
+      }
+    },
+    []
+  );
+
+  const deleteArticle = useCallback(
+    async (title) => {
+      try {
+        const response = await api.delete(`/noticias/${encodeURIComponent(title)}`);
+        const deleted = response?.data?.data;
+
+        setArticles((prev) => {
+          if (!Array.isArray(prev) || prev.length === 0) {
+            return [];
+          }
+          return prev.filter((item) => !matchesArticle(item, deleted, title));
+        });
+
+        return deleted;
+      } catch (err) {
+        handleApiError(err, "No fue posible eliminar la noticia.");
       }
     },
     []
@@ -166,8 +242,20 @@ export function NewsProvider({ children }) {
       refetch: fetchNews,
       getArticleBySlug,
       createArticle,
+      updateArticle,
+      deleteArticle,
     }),
-    [articles, news, loading, error, fetchNews, getArticleBySlug, createArticle]
+    [
+      articles,
+      news,
+      loading,
+      error,
+      fetchNews,
+      getArticleBySlug,
+      createArticle,
+      updateArticle,
+      deleteArticle,
+    ]
   );
 
   return <NewsContext.Provider value={value}>{children}</NewsContext.Provider>;
@@ -181,3 +269,4 @@ export function useNews() {
   }
   return context;
 }
+

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Newspaper, Plus } from "lucide-react";
 import Header from "@/components/home/Header";
-import NewsHero from "@/components/noticias/NewsHero";
+import NewsCard from "@/components/noticias/NewsCard";
 import NewsGrid from "@/components/noticias/NewsGrid";
 import LoadMoreButton from "@/components/noticias/LoadMoreButton";
 import { Button } from "@/components/ui/button";
@@ -69,13 +69,12 @@ export default function NewsPage() {
     return (
       <>
         {featuredNews && (
-          <NewsHero
-            title={featuredNews.title}
-            description={featuredNews.description}
-            image={featuredNews.image}
-            link={featuredNews.link}
-            date={featuredNews.date}
-          />
+          <section className="mb-12">
+            <h2 className="mb-6 text-2xl font-bold text-slate-800 sm:mb-8 sm:text-3xl">
+              Noticia Destacada
+            </h2>
+            <NewsCard article={featuredNews} />
+          </section>
         )}
 
         {visibleNews.length > 0 && <NewsGrid news={visibleNews} />}

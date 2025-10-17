@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
-const buildInitialState = () => ({
+const DEFAULT_STATE = {
   titulo: "",
   descripcion: "",
   resumen: "",
@@ -20,7 +20,69 @@ const buildInitialState = () => ({
   etiquetas: "",
   habilitacionComentarios: true,
   habilitacionAcciones: true,
+};
+
+const createEmptyState = () => ({
+  ...DEFAULT_STATE,
+  imagenes: [...DEFAULT_STATE.imagenes],
 });
+
+const formatDateForInput = (value) => {
+  if (!value) {
+    return "";
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    if (typeof value === "string" && value.length >= 10) {
+      return value.slice(0, 10);
+    }
+    return "";
+  }
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const buildInitialState = (initialValues = null) => {
+  const state = createEmptyState();
+
+  if (!initialValues) {
+    return state;
+  }
+
+  state.titulo = initialValues.titulo ?? "";
+  state.descripcion = initialValues.descripcion ?? "";
+  state.resumen = initialValues.resumen ?? "";
+  state.fecha = formatDateForInput(initialValues.fecha);
+  state.imagenPrincipal = initialValues.imagenPrincipal ?? "";
+  const gallery = Array.isArray(initialValues.imagenes)
+    ? initialValues.imagenes
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter((item) => item.length > 0)
+    : [];
+  state.imagenes = gallery.length > 0 ? gallery : [""];
+  state.autor = initialValues.autor ?? "";
+  state.categoria = initialValues.categoria ?? "";
+  state.fuente = initialValues.fuente ?? "";
+  const tags = Array.isArray(initialValues.etiquetas)
+    ? initialValues.etiquetas
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter((item) => item.length > 0)
+    : [];
+  state.etiquetas = tags.length > 0 ? tags.join(", ") : "";
+  if (initialValues.habilitacionComentarios !== undefined) {
+    state.habilitacionComentarios = Boolean(
+      initialValues.habilitacionComentarios
+    );
+  }
+  if (initialValues.habilitacionAcciones !== undefined) {
+    const value = initialValues.habilitacionAcciones;
+    state.habilitacionAcciones = value === true || value === "si";
+  }
+
+  return state;
+};
 
 const sanitizeImages = (imagenes = []) =>
   imagenes.map((item) => item.trim()).filter((item) => item.length > 0);
@@ -31,62 +93,90 @@ const sanitizeTags = (value) =>
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
 
-const buildPayload = (state) => {
+const buildPayload = (
+  state,
+  { includeTipoActividad = true, isUpdate = false } = {}
+) => {
   const gallery = sanitizeImages(state.imagenes);
   const payload = {
-    tipoActividad: "noticia",
     titulo: state.titulo.trim(),
     descripcion: state.descripcion.trim(),
     fecha: state.fecha ? new Date(state.fecha).toISOString() : null,
     imagenPrincipal: state.imagenPrincipal.trim() || null,
-    imagenes: gallery.length > 0 ? gallery : null,
+    imagenes: gallery.length > 0 ? gallery : isUpdate ? [] : null,
     habilitacionComentarios: Boolean(state.habilitacionComentarios),
     habilitacionAcciones: state.habilitacionAcciones ? "si" : "no",
   };
 
+  if (includeTipoActividad) {
+    payload.tipoActividad = "noticia";
+  }
+
   if (state.resumen.trim()) {
     payload.resumen = state.resumen.trim();
+  } else if (isUpdate) {
+    payload.resumen = null;
   }
   if (state.autor.trim()) {
     payload.autor = state.autor.trim();
+  } else if (isUpdate) {
+    payload.autor = null;
   }
   if (state.categoria.trim()) {
     payload.categoria = state.categoria.trim();
+  } else if (isUpdate) {
+    payload.categoria = null;
   }
   if (state.fuente.trim()) {
     payload.fuente = state.fuente.trim();
+  } else if (isUpdate) {
+    payload.fuente = null;
   }
   const tags = sanitizeTags(state.etiquetas);
   if (tags.length > 0) {
     payload.etiquetas = tags;
+  } else if (isUpdate) {
+    payload.etiquetas = [];
   }
 
   return payload;
 };
 
-// const Divider = () => (
+// const Divider// const Divider = () => (
 //   <div
 //     aria-hidden="true"
 //     className="h-px w-full bg-gradient-to-r from-transparent via-slate-100 to-transparent"
 //   />
 // );
 
-const panelClassName =
-  "rounded-2xl border border-border bg-card p-6 shadow-sm";
+const panelClassName = "rounded-2xl border border-border bg-card p-6 shadow-sm";
 const fieldInputClassName = "rounded-lg";
-const actionButtonClassName = "rounded-full";
-const primaryButtonClassName = `${actionButtonClassName} bg-primary text-primary-foreground shadow-sm transition hover:bg-primary/90`;
-const secondaryButtonClassName = `${actionButtonClassName} border border-border bg-background text-foreground transition hover:bg-accent hover:text-accent-foreground`;
+
+// const primaryButtonClassName = `${actionButtonClassName} bg-primary text-primary-foreground shadow-sm transition `;
+// const secondaryButtonClassName = `${actionButtonClassName} border border-border bg-background text-foreground transition hover:bg-accent hover:text-accent-foreground`;
 
 export default function NewsForm({
   onSubmit,
+  mode = "create",
+  initialValues = null,
   isSubmitting = false,
   apiError = null,
+  onDelete,
+  isDeleting = false,
+  deleteLabel = "Eliminar noticia",
 }) {
-  const [state, setState] = useState(buildInitialState);
+  const [state, setState] = useState(() => buildInitialState(initialValues));
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
 
+  useEffect(() => {
+    if (!initialValues) {
+      return;
+    }
+    setState(buildInitialState(initialValues));
+    setErrors({});
+    setSubmitError(null);
+  }, [initialValues]);
   const clientValidate = useCallback((nextState) => {
     const validationErrors = {};
     if (!nextState.titulo.trim()) {
@@ -100,12 +190,10 @@ export default function NewsForm({
     }
     return validationErrors;
   }, []);
-
   const handleFieldChange = useCallback((field, value) => {
     setState((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   }, []);
-
   const handleImageChange = useCallback((index, value) => {
     setState((prev) => {
       const next = [...prev.imagenes];
@@ -113,38 +201,51 @@ export default function NewsForm({
       return { ...prev, imagenes: next };
     });
   }, []);
-
   const addGalleryImage = useCallback(() => {
     setState((prev) => ({ ...prev, imagenes: [...prev.imagenes, ""] }));
   }, []);
-
   const removeGalleryImage = useCallback((index) => {
     setState((prev) => {
       const next = prev.imagenes.filter((_, idx) => idx !== index);
       return { ...prev, imagenes: next.length > 0 ? next : [""] };
     });
   }, []);
-
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
       setSubmitError(null);
-
       const validationErrors = clientValidate(state);
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
         return;
       }
-
       try {
-        await onSubmit(buildPayload(state));
-        setState(buildInitialState());
+        const payload = buildPayload(state, {
+          includeTipoActividad: mode === "create",
+          isUpdate: mode === "edit",
+        });
+        await onSubmit(payload);
+        if (mode === "create") {
+          setState(buildInitialState(initialValues));
+        }
       } catch (err) {
-        setSubmitError(err?.message || "No pudimos crear la noticia.");
+        const message =
+          err?.message ||
+          (mode === "edit"
+            ? "No pudimos actualizar la noticia."
+            : "No pudimos crear la noticia.");
+        setSubmitError(message);
+        throw err;
       }
     },
-    [clientValidate, onSubmit, state]
+    [clientValidate, onSubmit, state, mode, initialValues]
   );
+  const handleDeleteClick = useCallback(() => {
+    if (!onDelete || isSubmitting || isDeleting) {
+      return;
+    }
+    onDelete();
+  }, [onDelete, isSubmitting, isDeleting]);
 
   const feedbackMessage = useMemo(() => {
     if (submitError) {
@@ -155,6 +256,22 @@ export default function NewsForm({
     }
     return null;
   }, [apiError, submitError]);
+
+  const helperText =
+    mode === "edit"
+      ? "Los cambios se aplican inmediatamente a la noticia publicada."
+      : "Revisa la informacion antes de publicar. Podras editar la noticia desde el panel cuando sea necesario.";
+
+  const submitLabel =
+    mode === "edit"
+      ? isSubmitting
+        ? "Guardando cambios..."
+        : "Guardar cambios"
+      : isSubmitting
+      ? "Creando noticia..."
+      : "Publicar noticia";
+
+  const disableDelete = isSubmitting || isDeleting;
 
   return (
     <div>
@@ -174,7 +291,6 @@ export default function NewsForm({
               </div>
             )}
           </div>
-          {/* <Divider /> */}
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="titulo">Titulo</Label>
@@ -195,7 +311,6 @@ export default function NewsForm({
                 </p>
               )}
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="fecha">Fecha de publicacion</Label>
               <Input
@@ -215,7 +330,6 @@ export default function NewsForm({
                 </p>
               )}
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="autor">Autor</Label>
               <Input
@@ -229,7 +343,6 @@ export default function NewsForm({
                 className={fieldInputClassName}
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="categoria">Categoria</Label>
               <Input
@@ -245,7 +358,6 @@ export default function NewsForm({
             </div>
           </div>
         </section>
-
         <section className={panelClassName}>
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-foreground">Contenido</h2>
@@ -270,7 +382,6 @@ export default function NewsForm({
                 className={fieldInputClassName}
               />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="descripcion">Contenido principal</Label>
               <Textarea
@@ -293,7 +404,6 @@ export default function NewsForm({
             </div>
           </div>
         </section>
-
         <section className={panelClassName}>
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-foreground">Imagenes</h2>
@@ -320,7 +430,6 @@ export default function NewsForm({
                 Preferentemente un enlace horizontal (webp o jpg).
               </p>
             </div>
-
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -337,14 +446,13 @@ export default function NewsForm({
                   variant="outline"
                   size="sm"
                   onClick={addGalleryImage}
-                  className={`${secondaryButtonClassName} gap-2`}
+                  // className={`${secondaryButtonClassName} gap-2`}
                   disabled={isSubmitting}
                 >
                   <Plus className="h-4 w-4" />
                   Agregar imagen
                 </Button>
               </div>
-
               <div className="space-y-3">
                 {state.imagenes.map((imagen, index) => (
                   <div
@@ -377,7 +485,6 @@ export default function NewsForm({
             </div>
           </div>
         </section>
-
         <section className={panelClassName}>
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-foreground">
@@ -407,7 +514,6 @@ export default function NewsForm({
                   Separa cada etiqueta con una coma.
                 </p>
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="fuente">Fuente</Label>
                 <Input
@@ -422,7 +528,6 @@ export default function NewsForm({
                 />
               </div>
             </div>
-
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4 shadow-sm">
                 <div>
@@ -435,13 +540,13 @@ export default function NewsForm({
                 </div>
                 <Switch
                   checked={state.habilitacionComentarios}
+                  className="data-[state=checked]:bg-red-400 "
                   onCheckedChange={(value) =>
                     handleFieldChange("habilitacionComentarios", value)
                   }
                   disabled={isSubmitting}
                 />
               </div>
-
               <div className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4 shadow-sm">
                 <div>
                   <p className="text-sm font-semibold text-foreground">
@@ -452,6 +557,7 @@ export default function NewsForm({
                   </p>
                 </div>
                 <Switch
+                  className="data-[state=checked]:bg-red-400 "
                   checked={state.habilitacionAcciones}
                   onCheckedChange={(value) =>
                     handleFieldChange("habilitacionAcciones", value)
@@ -462,20 +568,29 @@ export default function NewsForm({
             </div>
           </div>
         </section>
-
         <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-6 shadow-sm shadow-slate-100/60 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground">
-            Revisa la informacion antes de publicar. Podras editar la noticia
-            desde el panel cuando sea necesario.
-          </p>
-          <Button
-            type="submit"
-            variant="default"
-            className={primaryButtonClassName}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Creando noticia..." : "Publicar noticia"}
-          </Button>
+          <p className="text-xs text-muted-foreground">{helperText}</p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            {onDelete ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-md cursor-pointer hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors"
+                onClick={handleDeleteClick}
+                disabled={disableDelete}
+              >
+                {isDeleting ? "Eliminando..." : deleteLabel}
+              </Button>
+            ) : null}
+            <Button
+              type="submit"
+              variant="default"
+              className=""
+              disabled={isSubmitting}
+            >
+              {submitLabel}
+            </Button>
+          </div>
         </div>
 
         {submitError && (
@@ -485,8 +600,3 @@ export default function NewsForm({
     </div>
   );
 }
-
-
-
-
-
