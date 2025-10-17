@@ -84,7 +84,7 @@ function CommentComposer({
           onChange={onChange}
           maxLength={MAX_COMMENT_LENGTH}
           disabled={disabled || submitting}
-          placeholder="Comparte tu opiniÃ³n sobre esta noticia..."
+          placeholder="Comparte tu opinión sobre esta noticia..."
           className="min-h-[120px] resize-y rounded-xl border-slate-200 bg-white/60 text-sm text-slate-800 placeholder:text-slate-500 focus-visible:border-red-400 focus-visible:ring-red-400"
         />
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -294,11 +294,11 @@ export default function CommentsSection({
 
   const canSubmit = Boolean(isEnabled && articleId && currentUserSummary?.id);
   const disableFormReason = !isEnabled
-    ? "Los comentarios estÃ¡n deshabilitados para esta noticia."
+    ? "Los comentarios están deshabilitados para esta noticia."
     : !currentUserSummary?.id
-    ? "Debes iniciar sesiÃ³n para comentar."
+    ? "Debes iniciar sesión para comentar."
     : !articleId
-    ? "No se encontrÃ³ esta noticia."
+    ? "No se encontró esta noticia."
     : "";
 
   return (
@@ -308,8 +308,8 @@ export default function CommentsSection({
           <h2 className="text-xl font-bold text-slate-900">Comentarios</h2>
           <p className="text-sm text-slate-600">
             {articleTitle
-              ? `ConversaciÃ³n sobre "${articleTitle}".`
-              : "Comparte tus ideas y participa en la conversaciÃ³n."}
+              ? `Conversación sobre "${articleTitle}".`
+              : "Comparte tus ideas y participa en la conversación."}
           </p>
         </div>
         {/* <div className="flex gap-2">
@@ -361,7 +361,7 @@ export default function CommentsSection({
 
       {!loading && comments.length === 0 && !error && isEnabled ? (
         <div className="mt-6 rounded-2xl border border-slate-100 bg-white/60 px-4 py-6 text-center text-sm text-slate-600">
-          SÃ© la primera persona en comentar esta noticia.
+          Sé la primera persona en comentar esta noticia.
         </div>
       ) : null}
 
@@ -379,4 +379,3 @@ export default function CommentsSection({
     </section>
   );
 }
-
