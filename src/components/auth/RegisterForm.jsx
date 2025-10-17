@@ -248,8 +248,6 @@ export default function RegisterForm() {
               {loading ? "Creando..." : "Crear Cuenta"}
             </Button>
 
-            {/* Password */}
-
             <div className="text-center text-sm text-gray-600">
               ¿Ya tenes una cuenta?{" "}
               <Link

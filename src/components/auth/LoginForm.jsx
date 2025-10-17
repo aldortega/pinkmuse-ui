@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useUser } from "@/contexts/UserContext";
 import {
   Card,
   CardContent,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import api from "@/lib/axios";
-
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -20,7 +20,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
+  const { setUser, refreshUser } = useUser();
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
@@ -30,11 +30,9 @@ export default function LoginForm() {
       if (data?.token) {
         localStorage.setItem("authToken", data.token);
         if (data.user) {
-          try {
-            localStorage.setItem("authUser", JSON.stringify(data.user));
-          } catch {
-            // ignore storage errors
-          }
+          setUser(data.user);
+        } else {
+          await refreshUser().catch(() => {});
         }
         navigate("/home");
       } else {
@@ -50,7 +48,6 @@ export default function LoginForm() {
       setLoading(false);
     }
   };
-
   return (
     <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-3 overflow-hidden box-border bg-pink-100">
       <Card className="w-full max-w-md sm:max-w-lg bg-pink-50 border-pink-100 shadow-xl">
@@ -89,7 +86,6 @@ export default function LoginForm() {
                 />
               </div>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-700">
                 Contraseña
@@ -121,7 +117,6 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-
             {/* remember y la pass */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               <label className="flex items-center space-x-2 text-xs sm:text-sm">
@@ -138,7 +133,6 @@ export default function LoginForm() {
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
-
             <Button
               type="submit"
               disabled={loading}
@@ -146,7 +140,6 @@ export default function LoginForm() {
             >
               {loading ? "Ingresando..." : "Iniciar Sesión"}
             </Button>
-
             {/* registro */}
             <div className="text-center text-xs sm:text-sm text-gray-600">
               ¿No tenés una cuenta?{" "}
