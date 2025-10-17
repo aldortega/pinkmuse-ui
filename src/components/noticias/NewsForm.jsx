@@ -278,10 +278,10 @@ export default function NewsForm({
       <form onSubmit={handleSubmit} className="space-y-6">
         <section className={panelClassName}>
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">
+            <h2 className="text-xl font-semibold text-slate-800">
               Detalles principales
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-slate-600">
               Define el titulo, fecha y atributos clave que se mostraran en la
               portada y en la tarjeta de noticia.
             </p>
@@ -360,8 +360,8 @@ export default function NewsForm({
         </section>
         <section className={panelClassName}>
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">Contenido</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-xl font-semibold text-slate-800">Contenido</h2>
+            <p className="text-sm text-slate-600">
               Escribe el cuerpo completo de la noticia y un resumen breve para
               destacar la informacion clave.
             </p>
@@ -406,8 +406,8 @@ export default function NewsForm({
         </section>
         <section className={panelClassName}>
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">Imagenes</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-xl font-semibold text-slate-800">Imagenes</h2>
+            <p className="text-sm text-slate-600">
               Define la imagen principal y agrega recursos complementarios para
               enriquecer el articulo.
             </p>
@@ -426,17 +426,17 @@ export default function NewsForm({
                 disabled={isSubmitting}
                 className={fieldInputClassName}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-slate-600">
                 Preferentemente un enlace horizontal (webp o jpg).
               </p>
             </div>
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <Label className="text-sm font-semibold text-foreground">
+                  <Label className="text-sm font-semibold text-slate-800">
                     Galeria (opcional)
                   </Label>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-600">
                     Agrega imagenes complementarias que apareceran dentro del
                     articulo.
                   </p>
@@ -444,6 +444,7 @@ export default function NewsForm({
                 <Button
                   type="button"
                   variant="outline"
+                  className="text-slate-800 cursor-pointer hover:text-slate-800"
                   size="sm"
                   onClick={addGalleryImage}
                   // className={`${secondaryButtonClassName} gap-2`}
@@ -474,7 +475,7 @@ export default function NewsForm({
                       size="icon"
                       onClick={() => removeGalleryImage(index)}
                       disabled={isSubmitting}
-                      className="self-end text-muted-foreground hover:text-destructive"
+                      className="self-end text-slate-600 hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
                       <span className="sr-only">Eliminar imagen</span>
@@ -487,54 +488,19 @@ export default function NewsForm({
         </section>
         <section className={panelClassName}>
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">
-              Metadatos y configuracion
+            <h2 className="text-xl font-semibold text-slate-800">
+              Configuracion
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Clasifica la noticia y elige como pueden interactuar los lectores
-              con ella.
-            </p>
           </div>
           {/* <Divider /> */}
           <div className="mt-6 space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="etiquetas">Etiquetas</Label>
-                <Input
-                  id="etiquetas"
-                  value={state.etiquetas}
-                  onChange={(event) =>
-                    handleFieldChange("etiquetas", event.target.value)
-                  }
-                  placeholder="Ej. lanzamiento, comunidad"
-                  disabled={isSubmitting}
-                  className={fieldInputClassName}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Separa cada etiqueta con una coma.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="fuente">Fuente</Label>
-                <Input
-                  id="fuente"
-                  value={state.fuente}
-                  onChange={(event) =>
-                    handleFieldChange("fuente", event.target.value)
-                  }
-                  placeholder="URL o descripcion de la fuente"
-                  disabled={isSubmitting}
-                  className={fieldInputClassName}
-                />
-              </div>
-            </div>
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4 shadow-sm">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className="text-sm font-semibold text-slate-800">
                     Permitir comentarios
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-600">
                     Habilita que la comunidad pueda opinar en esta noticia.
                   </p>
                 </div>
@@ -549,10 +515,10 @@ export default function NewsForm({
               </div>
               <div className="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4 shadow-sm">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className="text-sm font-semibold text-slate-800">
                     Permitir reacciones
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-600">
                     Activa los likes y otras interacciones.
                   </p>
                 </div>
@@ -569,13 +535,13 @@ export default function NewsForm({
           </div>
         </section>
         <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-6 shadow-sm shadow-slate-100/60 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground">{helperText}</p>
+          <p className="text-xs text-slate-600">{helperText}</p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
             {onDelete ? (
               <Button
                 type="button"
                 variant="outline"
-                className="rounded-md cursor-pointer hover:bg-red-600 hover:text-white hover:border-red-600 transition-colors"
+                className="rounded-md cursor-pointer "
                 onClick={handleDeleteClick}
                 disabled={disableDelete}
               >
@@ -585,7 +551,7 @@ export default function NewsForm({
             <Button
               type="submit"
               variant="default"
-              className=""
+              className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 cursor-pointer hover:opacity-90"
               disabled={isSubmitting}
             >
               {submitLabel}

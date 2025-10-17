@@ -4,8 +4,8 @@ export default function RelatedArticles({ items = [] }) {
   if (!items || items.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-rose-100/60 bg-white/90 p-5 shadow-sm ring-1 ring-black/5 backdrop-blur-sm">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-rose-500">
+    <section className="rounded-2xl border border-red-100/60 bg-white/90 p-5 shadow-sm ring-1 ring-black/5 backdrop-blur-sm">
+      <h2 className="text-sm font-semibold uppercase tracking-wide bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent">
         Tambien puede interesarte
       </h2>
 
@@ -14,7 +14,7 @@ export default function RelatedArticles({ items = [] }) {
           <Link
             key={item.id || item.slug || item.link}
             to={item.link}
-            className="group flex gap-3 rounded-xl border border-transparent p-3 transition hover:border-rose-200 hover:bg-rose-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200"
+            className="group flex gap-3 rounded-xl border border-transparent p-3 transition hover:border-red-200 hover:bg-red-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
           >
             <div className="relative h-16 w-24 overflow-hidden rounded-lg bg-gray-100 shadow-inner">
               <img
@@ -27,7 +27,7 @@ export default function RelatedArticles({ items = [] }) {
 
             <div className="flex flex-1 flex-col justify-between">
               <div>
-                <p className="line-clamp-2 text-sm font-semibold text-slate-800 transition-colors group-hover:text-rose-600">
+                <p className="line-clamp-2 text-sm font-semibold text-slate-800 transition-colors group-hover:text-red-400">
                   {item.title}
                 </p>
                 {item.description && (

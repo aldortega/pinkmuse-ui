@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import api from "@/lib/axios";
+import { useUser } from "@/contexts/UserContext";
 
 const NewsContext = createContext(null);
 
@@ -87,12 +88,30 @@ export function NewsProvider({ children }) {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useUser();
+  const currentUserId = useMemo(() => {
+    if (!user || typeof user !== 'object') {
+      return '';
+    }
+
+    return (
+      (typeof user._id === 'string' && user._id) ||
+      (typeof user.id === 'string' && user.id) ||
+      ''
+    );
+  }, [user]);
+
 
   const fetchNews = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get("/noticias");
+      const params = {};
+      if (currentUserId) {
+        params.usuario_id = currentUserId;
+      }
+
+      const response = await api.get("/noticias", { params });
       const fetched = Array.isArray(response?.data?.data)
         ? response.data.data
         : [];
@@ -107,7 +126,7 @@ export function NewsProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentUserId]);
 
   useEffect(() => {
     fetchNews();

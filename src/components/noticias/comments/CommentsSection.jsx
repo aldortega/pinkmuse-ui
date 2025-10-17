@@ -1,8 +1,9 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import ReactionSelector from "@/components/reactions/ReactionSelector";
 import { useComments } from "@/contexts/CommentsContext";
 import { Trash2 } from "lucide-react";
 
@@ -96,7 +97,7 @@ function CommentComposer({
             <Button
               type="submit"
               disabled={disabled || submitting || value.trim().length === 0}
-              className="bg-red-400 hover:bg-rose-600"
+              className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 cursor-pointer hover:opacity-85"
             >
               {submitting ? "Publicando..." : "Publicar comentario"}
             </Button>
@@ -129,6 +130,7 @@ function CommentCard({ comment, onDelete, canDelete, isDeleting }) {
   );
 
   const displayName = comment?.user?.displayName || "Usuario PinkMuse";
+  const commentId = comment?.id || comment?._id || (comment?._id?.$oid ?? "");
   const avatarFallback =
     comment?.user?.initials || displayName.slice(0, 2).toUpperCase();
 
@@ -185,6 +187,17 @@ function CommentCard({ comment, onDelete, canDelete, isDeleting }) {
                 {comment?.text}
               </p>
             )}
+          </div>
+          <div className="mt-3">
+            <ReactionSelector
+              referenceId={commentId}
+              referenceType="comentario"
+              variant="compact"
+              showTotal={false}
+              hideZeroCounts
+              className="space-y-1"
+              initialSummary={comment?.reactions}
+            />
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Header from "@/components/home/Header";
@@ -6,6 +6,7 @@ import Footer from "@/components/landing/Footer";
 import NewsDetailContent from "@/components/news/newsdetail/NewsDetailContent";
 import api from "@/lib/axios";
 import { useNews } from "@/contexts/NewsContext";
+import { useUser } from "@/contexts/UserContext";
 
 const formatDate = (value) => {
   if (!value) return null;
@@ -36,6 +37,7 @@ const computeReadingTime = (text) => {
 
 export default function NewsDetailPage() {
   const { slug } = useParams();
+  const { user } = useUser();
   const {
     news: normalizedNews,
     loading: newsLoading,
@@ -48,6 +50,18 @@ export default function NewsDetailPage() {
     () => (slug ? getArticleBySlug(slug) : null),
     [slug, getArticleBySlug]
   );
+
+  const currentUserId = useMemo(() => {
+    if (!user || typeof user !== "object") {
+      return "";
+    }
+
+    return (
+      (typeof user._id === "string" && user._id) ||
+      (typeof user.id === "string" && user.id) ||
+      ""
+    );
+  }, [user]);
 
   const [fallbackArticle, setFallbackArticle] = useState(null);
   const [fallbackError, setFallbackError] = useState(null);
@@ -92,8 +106,14 @@ export default function NewsDetailPage() {
         } catch {
           decodedSlug = slug;
         }
+        const params = {};
+        if (currentUserId) {
+          params.usuario_id = currentUserId;
+        }
+
         const response = await api.get(
-          `/noticias/${encodeURIComponent(decodedSlug)}`
+          `/noticias/${encodeURIComponent(decodedSlug)}`,
+          { params }
         );
         if (!active) {
           return;
@@ -126,12 +146,20 @@ export default function NewsDetailPage() {
     return () => {
       active = false;
     };
-  }, [slug, articleFromContext, newsLoading, newsError]);
+  }, [slug, articleFromContext, newsLoading, newsError, currentUserId]);
 
   const article = articleFromContext || fallbackArticle;
   const combinedLoading = newsLoading || isFallbackLoading;
   const combinedError = fallbackError;
 
+  useEffect(() => {
+    if (combinedLoading) {
+      return;
+    }
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }
+  }, [slug, combinedLoading]);
   useEffect(() => {
     setActionError(null);
     setIsDeleting(false);
@@ -208,7 +236,7 @@ export default function NewsDetailPage() {
     return (
       <div>
         <Header />
-        <main className="flex min-h-[60vh] items-center justify-center bg-gradient-to-b from-white via-rose-50/40 to-white">
+        <main className="flex min-h-[60vh] items-center justify-center ">
           <p className="px-4 text-center text-base text-slate-600 sm:px-6 sm:text-lg">
             Cargando noticia...
           </p>
@@ -222,7 +250,7 @@ export default function NewsDetailPage() {
     return (
       <div>
         <Header />
-        <main className="flex min-h-[60vh] items-center justify-center bg-gradient-to-b from-white via-rose-50/40 to-white">
+        <main className="flex min-h-[60vh] items-center justify-center ">
           <div className="px-4 text-center sm:px-6">
             <h1 className="mb-4 text-3xl font-bold text-slate-900 sm:text-4xl">
               Articulo no encontrado
@@ -240,7 +268,7 @@ export default function NewsDetailPage() {
   return (
     <div>
       <Header />
-      <main className="bg-gradient-to-b from-white via-rose-50/40 to-white">
+      <main className="">
         <NewsDetailContent
           article={article}
           formattedDate={formattedDate}

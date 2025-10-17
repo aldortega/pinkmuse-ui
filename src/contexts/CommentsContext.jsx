@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import api from "@/lib/axios";
 import { useUser } from "@/contexts/UserContext";
+import { DEFAULT_REACTION_COUNTS, REACTION_MAP } from "@/constants/reactions";
 
 const CommentsContext = createContext(null);
 
@@ -11,6 +12,42 @@ const DEFAULT_ENTRY = Object.freeze({
   error: "",
   lastFetchedAt: null,
 });
+
+
+const createDefaultReactionSummary = () => ({
+  counts: { ...DEFAULT_REACTION_COUNTS },
+  total: 0,
+  userReaction: null,
+});
+
+const normalizeReactionSummary = (value) => {
+  const summary = createDefaultReactionSummary();
+
+  if (!value || typeof value !== "object") {
+    return summary;
+  }
+
+  const rawCounts = value.counts && typeof value.counts === "object" ? value.counts : null;
+
+  if (rawCounts) {
+    for (const key of Object.keys(summary.counts)) {
+      const raw = rawCounts[key];
+      summary.counts[key] = typeof raw === "number" && Number.isFinite(raw) && raw >= 0 ? raw : 0;
+    }
+  }
+
+  const total = value.total;
+  if (typeof total === "number" && Number.isFinite(total) && total >= 0) {
+    summary.total = total;
+  } else {
+    summary.total = Object.values(summary.counts).reduce((acc, count) => acc + count, 0);
+  }
+
+  const reaction = typeof value.userReaction === "string" ? value.userReaction : "";
+  summary.userReaction = REACTION_MAP[reaction] ? reaction : null;
+
+  return summary;
+};
 
 const toKey = (value) => {
   if (value === null || value === undefined) {
@@ -143,6 +180,7 @@ const normalizeComment = (comment, fallbackUserSummary) => {
     normalizeCommentUser(comment.usuario ?? comment.user) || fallbackUserSummary || normalizeCommentUser(comment.autor);
 
   const text = rawText.trim();
+  const reactionSummary = normalizeReactionSummary(comment.reactions);
 
   return {
     id: id || `${referenceId || "comentario"}-${createdAt || Date.now()}`,
@@ -153,6 +191,7 @@ const normalizeComment = (comment, fallbackUserSummary) => {
     createdAtDate: parsedDate,
     rawDate: createdAt || rawDate || null,
     meta,
+    reactions: reactionSummary,
     user: userSummary,
   };
 };
@@ -205,7 +244,13 @@ export function CommentsProvider({ children }) {
       });
 
       try {
-        const response = await api.get(`/noticias/${encodeURIComponent(referenceId)}/comentarios`);
+        const params = {};
+        const currentUserId = resolveUserId();
+        if (currentUserId) {
+          params.usuario_id = currentUserId;
+        }
+
+        const response = await api.get(`/noticias/${encodeURIComponent(referenceId)}/comentarios`, { params });
         const rawComments = Array.isArray(response?.data?.data) ? response.data.data : [];
         const normalized = rawComments
           .map((item) => normalizeComment(item))
@@ -248,7 +293,7 @@ export function CommentsProvider({ children }) {
         throw error;
       }
     },
-    []
+    [resolveUserId]
   );
 
   const createCommentForNews = useCallback(
