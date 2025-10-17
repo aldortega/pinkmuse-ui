@@ -11,8 +11,7 @@ This repository contains the **frontend** of the application, built with a moder
 - ⚛️ **React** – Fast and modern frontend framework.
 - 🎨 **TailwindCSS** – Utility-first CSS for a consistent design.
 - 🧩 **shadcn/ui** – Accessible and customizable UI components.
-- 🌐 **React Router** – Client-side routing and navigation.
-- 🔒 **Auth (JWT / Context)** – Authentication and protected routes.
+- 🔒 **Auth (Laravel Sanctum)** – Authentication and protected routes.
 
 ---
 
