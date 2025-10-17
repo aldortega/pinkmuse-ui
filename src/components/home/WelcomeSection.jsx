@@ -1,31 +1,25 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useUser } from "@/contexts/UserContext";
 
 export default function WelcomeSection() {
-  const [displayName, setDisplayName] = useState("");
+  const { user } = useUser();
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
+  const nombre = useMemo(() => {
+    if (!user) {
+      return "";
     }
 
-    const storedUser = window.localStorage.getItem("authUser");
-    if (!storedUser) {
-      return;
+    if (user.displayName) {
+      return user.displayName;
     }
 
-    try {
-      const user = JSON.parse(storedUser);
-      const nameCandidate = user?.nombre ?? user?.name ?? "";
-
-      if (typeof nameCandidate === "string") {
-        setDisplayName(nameCandidate.trim());
-      }
-    } catch {
-      setDisplayName("");
+    const combined = [user.nombre, user.apellido].filter(Boolean).join(" ").trim();
+    if (combined) {
+      return combined;
     }
-  }, []);
 
-  const nombre = displayName;
+    return user?.perfil?.username || user?.correo || "";
+  }, [user]);
 
   return (
     <section className="py-8">
