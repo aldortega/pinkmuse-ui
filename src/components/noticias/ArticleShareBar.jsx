@@ -30,7 +30,9 @@ export default function ArticleShareBar({ url }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-rose-100/60 bg-white/90 p-4 shadow-sm ring-1 ring-black/5 backdrop-blur-sm sm:p-6">
       <div className="max-w-md">
-        <p className="text-sm font-medium text-slate-800">Comparte esta noticia</p>
+        <p className="text-sm font-medium text-slate-800">
+          Comparte esta noticia
+        </p>
         <p className="text-xs text-slate-500">
           Copia el enlace y compartelo con tu comunidad.
         </p>
@@ -41,7 +43,12 @@ export default function ArticleShareBar({ url }) {
         )}
       </div>
 
-      <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleCopy}
+        className="gap-2 text-slate-800 hover:text-slate-800 cursor-pointer"
+      >
         <Link2 className="h-4 w-4" />
         Copiar enlace
       </Button>

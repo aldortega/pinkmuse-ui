@@ -150,7 +150,8 @@ const buildPayload = (
 // );
 
 const panelClassName = "rounded-2xl border border-border bg-card p-6 shadow-sm";
-const fieldInputClassName = "rounded-lg";
+const fieldInputClassName =
+  "rounded-lg text-slate-800 placeholder:text-slate-600 ";
 
 // const primaryButtonClassName = `${actionButtonClassName} bg-primary text-primary-foreground shadow-sm transition `;
 // const secondaryButtonClassName = `${actionButtonClassName} border border-border bg-background text-foreground transition hover:bg-accent hover:text-accent-foreground`;
@@ -293,7 +294,9 @@ export default function NewsForm({
           </div>
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="titulo">Titulo</Label>
+              <Label htmlFor="titulo" className="text-slate-800">
+                Titulo
+              </Label>
               <Input
                 id="titulo"
                 value={state.titulo}
@@ -312,7 +315,9 @@ export default function NewsForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="fecha">Fecha de publicacion</Label>
+              <Label htmlFor="fecha" className="text-slate-800">
+                Fecha de publicacion
+              </Label>
               <Input
                 id="fecha"
                 type="date"
@@ -331,7 +336,9 @@ export default function NewsForm({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="autor">Autor</Label>
+              <Label htmlFor="autor" className="text-slate-800">
+                Autor
+              </Label>
               <Input
                 id="autor"
                 value={state.autor}
@@ -344,7 +351,9 @@ export default function NewsForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="categoria">Categoria</Label>
+              <Label htmlFor="categoria" className="text-slate-800">
+                Categoria
+              </Label>
               <Input
                 id="categoria"
                 value={state.categoria}
@@ -369,7 +378,9 @@ export default function NewsForm({
           {/* <Divider /> */}
           <div className="mt-6 space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="resumen">Resumen</Label>
+              <Label htmlFor="resumen" className="text-slate-800">
+                Resumen
+              </Label>
               <Textarea
                 id="resumen"
                 value={state.resumen}
@@ -383,7 +394,9 @@ export default function NewsForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="descripcion">Contenido principal</Label>
+              <Label htmlFor="descripcion" className="text-slate-800">
+                Contenido principal
+              </Label>
               <Textarea
                 id="descripcion"
                 value={state.descripcion}
@@ -541,7 +554,7 @@ export default function NewsForm({
               <Button
                 type="button"
                 variant="outline"
-                className="rounded-md cursor-pointer "
+                className="rounded-md cursor-pointer text-slate-800 hover:text-slate-800 "
                 onClick={handleDeleteClick}
                 disabled={disableDelete}
               >

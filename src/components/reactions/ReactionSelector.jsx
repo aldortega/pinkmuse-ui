@@ -6,23 +6,21 @@ import { cn } from "@/lib/utils";
 const VARIANTS = {
   default: {
     container: "flex flex-wrap gap-3",
-    button: "flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/70",
+    button:
+      "flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70",
     emoji: "text-lg",
     count: "text-xs font-semibold text-slate-500",
   },
   compact: {
     container: "flex flex-wrap items-center gap-2",
-    button: "flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/70",
+    button:
+      "flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70",
     emoji: "text-base leading-none",
     count: "text-[11px] font-semibold text-slate-500",
   },
 };
 
-const buildDisabledMessage = ({
-  canReact,
-  disabled,
-  disabledReason,
-}) => {
+const buildDisabledMessage = ({ canReact, disabled, disabledReason }) => {
   if (disabled && disabledReason) {
     return disabledReason;
   }
@@ -69,7 +67,13 @@ export default function ReactionSelector({
     }
 
     primeSummary(referenceType, referenceId, initialSummary);
-  }, [initialSummary, primeSummary, referenceId, referenceType, summary.lastFetchedAt]);
+  }, [
+    initialSummary,
+    primeSummary,
+    referenceId,
+    referenceType,
+    summary.lastFetchedAt,
+  ]);
 
   useEffect(() => {
     if (!referenceId || !referenceType) {
@@ -142,9 +146,11 @@ export default function ReactionSelector({
               className={cn(
                 variantStyles.button,
                 isActive
-                  ? "border-rose-300 bg-rose-50/80 text-rose-600 shadow-sm"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-rose-200 hover:text-rose-600",
-                effectiveDisabled && !isActive ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+                  ? "border-red-300 bg-red-50 text-red-500 shadow-sm"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-red-200 hover:text-red-600",
+                effectiveDisabled && !isActive
+                  ? "cursor-not-allowed opacity-60"
+                  : "cursor-pointer"
               )}
             >
               <span className={cn(variantStyles.emoji)}>{reaction.emoji}</span>
@@ -154,7 +160,7 @@ export default function ReactionSelector({
                 <span
                   className={cn(
                     "text-sm font-medium",
-                    isActive ? "text-rose-600" : "text-slate-600"
+                    isActive ? "text-red-400" : "text-slate-600"
                   )}
                 >
                   {reaction.label}
@@ -167,7 +173,7 @@ export default function ReactionSelector({
       </div>
 
       {summary.error || (variant === "default" && message) ? (
-        <p className="text-xs text-rose-600">
+        <p className="text-xs text-red-600">
           {summary.error || (variant === "default" ? message : "")}
         </p>
       ) : null}

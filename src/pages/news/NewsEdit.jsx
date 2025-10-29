@@ -6,6 +6,7 @@ import Footer from "@/components/landing/Footer";
 import NewsForm from "@/components/noticias/NewsForm";
 import api from "@/lib/axios";
 import { useNews } from "@/contexts/NewsContext";
+import { ArrowLeft } from "lucide-react";
 
 const decodeSlug = (value) => {
   if (!value) {
@@ -59,7 +60,9 @@ export default function NewsEditPage() {
       setLoadError(null);
       try {
         const decoded = decodeSlug(slug);
-        const response = await api.get(`/noticias/${encodeURIComponent(decoded)}`);
+        const response = await api.get(
+          `/noticias/${encodeURIComponent(decoded)}`
+        );
         if (!active) {
           return;
         }
@@ -119,7 +122,9 @@ export default function NewsEditPage() {
     if (!article?.titulo) {
       return;
     }
-    const confirmed = window.confirm("Seguro que deseas eliminar esta noticia?");
+    const confirmed = window.confirm(
+      "Seguro que deseas eliminar esta noticia?"
+    );
     if (!confirmed) {
       return;
     }
@@ -179,9 +184,9 @@ export default function NewsEditPage() {
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  className="inline-flex items-center gap-2 text-sm font-medium text-rose-600 transition hover:text-rose-500"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-red-400 transition hover:text-red-500 cursor-pointer"
                 >
-                  <span aria-hidden="true">?</span>
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                   Volver a noticias
                 </button>
                 <div>
@@ -189,7 +194,8 @@ export default function NewsEditPage() {
                     Editar noticia
                   </h1>
                   <p className="mt-2 max-w-3xl text-sm text-slate-600 sm:text-base">
-                    Actualiza la informacion de la noticia y guarda los cambios para reflejarlos al instante.
+                    Actualiza la informacion de la noticia y guarda los cambios
+                    para reflejarlos al instante.
                   </p>
                 </div>
               </div>
