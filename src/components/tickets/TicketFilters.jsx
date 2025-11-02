@@ -38,14 +38,16 @@ export default function TicketFilters({
             Filtrar eventos disponibles
           </h2>
           <p className="text-sm text-slate-600">
-            Podés buscar por nombre del evento o quedarte con los shows más
-            cercanos en la agenda.
+            Podés buscar por nombre del evento.
           </p>
         </div>
 
         <div className="flex w-full flex-col gap-4 md:w-auto md:flex-row md:items-center">
           <div className="flex w-full flex-col gap-2">
-            <Label htmlFor="tickets-search" className="text-xs uppercase text-slate-500">
+            <Label
+              htmlFor="tickets-search"
+              className="text-xs uppercase text-slate-500"
+            >
               Buscar evento
             </Label>
             <Input
@@ -92,7 +94,7 @@ export default function TicketFilters({
                 htmlFor="tickets-only-available"
                 className="text-sm font-medium text-slate-700"
               >
-                Mostrar solo con stock
+                Disponibles
               </Label>
             </div>
           </div>
@@ -100,7 +102,8 @@ export default function TicketFilters({
       </div>
 
       <p className="mt-4 text-xs text-slate-500">
-        Actualmente mostrando: <span className="font-semibold">{rangeLabel}</span>
+        Actualmente mostrando:{" "}
+        <span className="font-semibold">{rangeLabel}</span>
       </p>
     </section>
   );
