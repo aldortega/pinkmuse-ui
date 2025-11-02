@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import api from "@/lib/axios";
 import { useUser } from "@/contexts/UserContext";
+import { buildImageUrl } from "@/lib/imageService";
 import { DEFAULT_REACTION_COUNTS, REACTION_MAP } from "@/constants/reactions";
 
 const CommentsContext = createContext(null);
@@ -91,6 +92,49 @@ const computeInitials = (value) => {
   return initials.length > 0 ? initials : "UP";
 };
 
+const resolveAvatarUrl = (rawUser) => {
+  if (!rawUser || typeof rawUser !== "object") {
+    return "";
+  }
+
+  const candidates = [
+    rawUser.avatar,
+    rawUser?.perfil?.imagenPrincipal,
+    rawUser?.perfil?.avatar,
+    rawUser?.imagenPrincipal,
+    rawUser?.foto,
+    rawUser?.image,
+    rawUser?.photo,
+    rawUser?.avatarPaths,
+  ];
+
+  const resolveCandidate = (value) => {
+    if (!value) {
+      return "";
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const candidateUrl = resolveCandidate(item);
+        if (candidateUrl) {
+          return candidateUrl;
+        }
+      }
+      return "";
+    }
+    const built = buildImageUrl(value);
+    return typeof built === "string" && built.trim() !== "" ? built : "";
+  };
+
+  for (const candidate of candidates) {
+    const url = resolveCandidate(candidate);
+    if (url) {
+      return url;
+    }
+  }
+
+  return "";
+};
+
 const normalizeCommentUser = (rawUser) => {
   if (!rawUser || typeof rawUser !== "object") {
     return null;
@@ -116,7 +160,7 @@ const normalizeCommentUser = (rawUser) => {
     apellido,
     displayName,
     correo: typeof rawUser.correo === "string" ? rawUser.correo : "",
-    avatar: typeof rawUser.avatar === "string" ? rawUser.avatar : "",
+    avatar: resolveAvatarUrl(rawUser),
     rol: typeof rawUser.rol === "string" ? rawUser.rol : "",
     initials: computeInitials(displayName),
   };
@@ -138,6 +182,11 @@ const buildUserSummaryFromContext = (user) => {
     displayName: typeof user.displayName === "string" ? user.displayName : undefined,
     correo: typeof user.correo === "string" ? user.correo : "",
     avatar: typeof user.avatar === "string" ? user.avatar : "",
+    avatarPaths: user?.avatarPaths,
+    perfil: user?.perfil,
+    foto: user?.foto,
+    image: user?.image,
+    photo: user?.photo,
     rol: typeof user.rol === "string" ? user.rol : "",
   });
 };

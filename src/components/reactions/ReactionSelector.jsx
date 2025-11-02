@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo } from "react";
+﻿import { useEffect, useMemo, useRef } from "react";
 
 import { useReactions } from "@/contexts/ReactionsContext";
 import { cn } from "@/lib/utils";
@@ -56,6 +56,11 @@ export default function ReactionSelector({
 
   const summary = getSummary(referenceType, referenceId);
   const processing = isProcessing(referenceType, referenceId);
+  const primedRef = useRef(false);
+
+  useEffect(() => {
+    primedRef.current = false;
+  }, [referenceId, referenceType]);
 
   useEffect(() => {
     if (!referenceId || !referenceType || !initialSummary) {
@@ -66,6 +71,7 @@ export default function ReactionSelector({
       return;
     }
 
+    primedRef.current = true;
     primeSummary(referenceType, referenceId, initialSummary);
   }, [
     initialSummary,
@@ -81,6 +87,10 @@ export default function ReactionSelector({
     }
 
     if (summary.lastFetchedAt) {
+      return;
+    }
+
+    if (primedRef.current) {
       return;
     }
 

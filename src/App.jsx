@@ -12,20 +12,27 @@ import NewsPage from "./pages/news/News";
 import NewsDetailPage from "./pages/news/NewsDetail";
 import NewsCreatePage from "./pages/news/NewsCreate";
 import NewsEditPage from "./pages/news/NewsEdit";
+import MerchListPage from "./pages/merch/MerchListPage";
+import ProductDetailPage from "./pages/merch/ProductDetailPage";
+import TicketsListPage from "@/pages/tickets/TicketsListPage";
+import TicketDetailPage from "@/pages/tickets/TicketDetailPage";
+import EditarEvento from "@/pages/EditarEvento";
 import { NewsProvider } from "@/contexts/NewsContext";
 import { ReactionsProvider } from "@/contexts/ReactionsContext";
 import { EventProvider } from "@/contexts/EventContext";
 import { UserProvider } from "@/contexts/UserContext";
+import { NotificationsProvider } from "@/contexts/NotificationsContext";
 
 export default function App() {
   return (
     <UserProvider>
-      <EventProvider>
-        <NewsProvider>
-          <ReactionsProvider>
-            <div className="flex min-h-dvh w-full flex-col">
-              <Router>
-                <Routes>
+      <NotificationsProvider>
+        <EventProvider>
+          <NewsProvider>
+            <ReactionsProvider>
+              <div className="flex min-h-dvh w-full flex-col">
+                <Router>
+                  <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
@@ -58,6 +65,24 @@ export default function App() {
                     element={
                       <ProtectedRoute>
                         <EventsManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/entradas"
+                    element={
+                      <ProtectedRoute>
+                        <TicketsListPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/entradas/:eventSlug"
+                    element={
+                      <ProtectedRoute>
+                        <TicketDetailPage />
                       </ProtectedRoute>
                     }
                   />
@@ -107,6 +132,33 @@ export default function App() {
                     }
                   />
 
+                  <Route
+                    path="/eventos/:eventId/editar"
+                    element={
+                      <ProtectedRoute>
+                        <EditarEvento />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/merch"
+                    element={
+                      <ProtectedRoute>
+                        <MerchListPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/merch/:slug"
+                    element={
+                      <ProtectedRoute>
+                        <ProductDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
                   {/* <Route path="/noticias" element={<ProtectedRoute></ProtectedRoute>} /> */}
                 </Routes>
               </Router>
@@ -114,6 +166,7 @@ export default function App() {
           </ReactionsProvider>
         </NewsProvider>
       </EventProvider>
-    </UserProvider>
+    </NotificationsProvider>
+  </UserProvider>
   );
 }
