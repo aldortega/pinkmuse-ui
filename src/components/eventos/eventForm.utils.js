@@ -1,4 +1,4 @@
-﻿const resolveImageValue = (value) => {
+const resolveImageValue = (value) => {
   if (!value) {
     return "";
   }
@@ -12,7 +12,6 @@
     return (
       value.webp ||
       value.png ||
-      value.url ||
       value.path ||
       ""
     );
@@ -54,7 +53,11 @@ export const buildInitialState = (data) => {
     ? data.artistasExtras
     : [];
 
-  const imagenPrincipal = resolveImageValue(data?.imagenPrincipal ?? data?.image);
+  const rawImagen = data?.imagenPrincipal ?? data?.image ?? null;
+  const imagenPrincipal =
+    rawImagen && typeof rawImagen === "object" && !Array.isArray(rawImagen)
+      ? rawImagen
+      : resolveImageValue(rawImagen);
 
   return {
     nombreEvento: data?.nombreEvento ?? data?.title ?? "",
@@ -110,8 +113,34 @@ const normalizeEntradas = (entradas) =>
   }));
 
 const normalizeImagenPrincipal = (imagen) => {
-  const value = resolveImageValue(imagen);
-  return value.trim() || null;
+  if (!imagen) {
+    return null;
+  }
+
+  if (typeof imagen === "string") {
+    const trimmed = imagen.trim();
+    return trimmed || null;
+  }
+
+  if (Array.isArray(imagen) && imagen.length > 0) {
+    return normalizeImagenPrincipal(imagen[0]);
+  }
+
+  if (typeof imagen === "object") {
+    const payload = {};
+    if (imagen.webp) {
+      payload.webp = imagen.webp;
+    }
+    if (imagen.png) {
+      payload.png = imagen.png;
+    }
+    if (imagen.principal !== undefined) {
+      payload.principal = imagen.principal;
+    }
+    return Object.keys(payload).length > 0 ? payload : null;
+  }
+
+  return null;
 };
 
 export const buildSubmissionArtifacts = (formData, isEditing) => {
@@ -135,3 +164,4 @@ export const buildSubmissionArtifacts = (formData, isEditing) => {
 
   return { payload, submissionPayload };
 };
+

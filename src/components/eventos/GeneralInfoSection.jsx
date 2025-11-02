@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { buildImageUrl } from "@/lib/imageService";
 
 export default function GeneralInfoSection({
@@ -15,10 +16,18 @@ export default function GeneralInfoSection({
   onFieldChange,
   isEditing,
   onImageUpload,
+  onRemoveImage,
   isUploadingImage,
   imageUploadError,
 }) {
   const previewUrl = buildImageUrl(data.imagenPrincipal);
+  const storagePath =
+    typeof data.imagenPrincipal === "string"
+      ? data.imagenPrincipal
+      : data.imagenPrincipal?.webp ||
+        data.imagenPrincipal?.png ||
+        data.imagenPrincipal?.path ||
+        "";
 
   const handleFileInput = (event) => {
     if (!onImageUpload) {
@@ -106,18 +115,13 @@ export default function GeneralInfoSection({
         <Label className="text-slate-800" htmlFor="imagenPrincipal">
           Imagen principal
         </Label>
-        <Input
-          id="imagenPrincipal"
-          value={data.imagenPrincipal}
-          onChange={(e) => onFieldChange("imagenPrincipal", e.target.value)}
-          placeholder="Pega una URL o sube una imagen"
-        />
         <div className="flex flex-wrap items-center gap-3">
           <Input
             type="file"
             accept="image/*"
             onChange={handleFileInput}
             className="max-w-xs"
+            id="imagenPrincipal"
           />
           {isUploadingImage && (
             <span className="text-sm text-slate-600">
@@ -125,6 +129,24 @@ export default function GeneralInfoSection({
             </span>
           )}
         </div>
+        {storagePath && (
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-xs font-medium text-slate-700">
+              Ruta en storage: {storagePath}
+            </p>
+            {typeof onRemoveImage === "function" && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onRemoveImage}
+                className="text-destructive hover:text-destructive"
+              >
+                Eliminar imagen
+              </Button>
+            )}
+          </div>
+        )}
         {imageUploadError && (
           <p className="text-sm text-red-600">{imageUploadError}</p>
         )}
@@ -142,8 +164,9 @@ export default function GeneralInfoSection({
           </div>
         )}
         <p className="text-xs text-slate-500">
-          Si subes una imagen, guardaremos la ruta devuelta por el servicio y la
-          mostraremos en la tarjeta del evento.
+          Al subir la imagen guardamos la ruta relativa dentro de
+          <code className="ml-1">storage/app/public/imagenes/eventos</code>.
+          Esa misma ruta se usa para mostrar la imagen en el sitio.
         </p>
       </div>
     </section>

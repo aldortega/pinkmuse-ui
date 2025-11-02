@@ -1,4 +1,5 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import api from "@/lib/axios";
 import { uploadEventImage } from "@/lib/imageService";
 import GeneralInfoSection from "./GeneralInfoSection";
 import AddressSection from "./AddressSection";
@@ -89,10 +90,7 @@ export function EventForm({
           formData?.nombreEvento
         );
         if (uploaded) {
-          const imagePath = uploaded.webp || uploaded.png || uploaded.url || "";
-          if (imagePath) {
-            updateField("imagenPrincipal", imagePath);
-          }
+          updateField("imagenPrincipal", uploaded);
         }
       } catch (error) {
         console.error("Error al subir la imagen del evento:", error);
@@ -107,6 +105,55 @@ export function EventForm({
     },
     [formData?.nombreEvento, updateField]
   );
+
+  const handleRemoveImage = useCallback(async () => {
+    setImageUploadError(null);
+    const current = formData?.imagenPrincipal;
+
+    const payload = (() => {
+      if (!current) {
+        return null;
+      }
+      if (typeof current === "string") {
+        const trimmed = current.trim();
+        return trimmed ? { ruta: trimmed } : null;
+      }
+      if (Array.isArray(current)) {
+        const rutas = current
+          .map((item) =>
+            typeof item === "string"
+              ? item
+              : item?.webp || item?.png || item?.path || null
+          )
+          .filter(Boolean);
+        return rutas.length ? { rutas } : null;
+      }
+      if (typeof current === "object") {
+        const rutas = [
+          current.webp ?? null,
+          current.png ?? null,
+          current.path ?? null,
+        ].filter(Boolean);
+        return rutas.length ? { rutas } : null;
+      }
+      return null;
+    })();
+
+    try {
+      if (payload) {
+        await api.delete("/imagenes", { data: payload });
+      }
+    } catch (error) {
+      console.error("Error al eliminar la imagen del evento:", error);
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "No pudimos eliminar la imagen. Intenta nuevamente.";
+      setImageUploadError(message);
+    } finally {
+      updateField("imagenPrincipal", null);
+    }
+  }, [formData?.imagenPrincipal, updateField, setImageUploadError]);
 
   const handleSubmit = useCallback(
     async (event) => {
@@ -148,6 +195,7 @@ export function EventForm({
         onFieldChange={updateField}
         isEditing={isEditing}
         onImageUpload={handleImageUpload}
+        onRemoveImage={handleRemoveImage}
         isUploadingImage={isUploadingImage}
         imageUploadError={imageUploadError}
       />
