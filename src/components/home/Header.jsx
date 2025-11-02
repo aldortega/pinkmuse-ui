@@ -1,10 +1,23 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import api from "@/lib/axios";
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Music, LogOut, User, Users } from "lucide-react";
+import {
+  Bell,
+  CalendarDays,
+  CheckCheck,
+  Loader2,
+  LogOut,
+  Music,
+  Newspaper,
+  ShoppingBag,
+  Trash2,
+  User,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "@/contexts/UserContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
 const getInitials = (value) => {
   if (!value) {
@@ -61,13 +74,34 @@ const getRoleLabel = (role) => {
   return label;
 };
 
+const notificationIcons = {
+  evento: CalendarDays,
+  producto: ShoppingBag,
+  noticia: Newspaper,
+  general: Bell,
+};
+
 export function Header() {
   const navigate = useNavigate();
   const { user, logout } = useUser();
+  const {
+    notifications,
+    unreadCount,
+    loading: notificationsLoading,
+    error: notificationsError,
+    refetch: refetchNotifications,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+  } = useNotifications();
   const [adminRoleIds, setAdminRoleIds] = useState([]);
   const rolesFetchPending = useRef(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState("");
   const menuRef = useRef(null);
+  const notificationsRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -142,6 +176,51 @@ export function Header() {
     };
   }, [isMenuOpen]);
 
+  useEffect(() => {
+    if (!isNotificationsOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event) => {
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(event.target)
+      ) {
+        setIsNotificationsOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setIsNotificationsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isNotificationsOpen]);
+
+  useEffect(() => {
+    if (!isNotificationsOpen) {
+      return;
+    }
+
+    refetchNotifications().catch(() => {
+      // errores controlados en el contexto
+    });
+  }, [isNotificationsOpen, refetchNotifications]);
+
+  useEffect(() => {
+    if (!user) {
+      setIsNotificationsOpen(false);
+    }
+  }, [user]);
+
   const isAdmin = useMemo(() => {
     if (!user) {
       return false;
@@ -176,6 +255,7 @@ export function Header() {
 
   const handleLogout = async () => {
     setIsMenuOpen(false);
+    setIsNotificationsOpen(false);
     try {
       await logout();
     } catch {
@@ -186,13 +266,86 @@ export function Header() {
 
   const handleProfile = () => {
     setIsMenuOpen(false);
+    setIsNotificationsOpen(false);
     navigate("/perfil");
   };
 
   const handleUserManagement = () => {
     setIsMenuOpen(false);
+    setIsNotificationsOpen(false);
     navigate("/gestion-usuarios");
   };
+
+  const handleToggleNotifications = useCallback(() => {
+    setIsNotificationsOpen((prev) => !prev);
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+    }
+  }, [isMenuOpen]);
+
+  const handleNotificationClick = useCallback(
+    async (notification) => {
+      if (!notification) {
+        return;
+      }
+
+      const { id, link, read } = notification;
+
+      try {
+        if (!read && id) {
+          await markAsRead(id);
+        }
+      } catch {
+        // ignoramos errores de marcado individual
+      } finally {
+        setIsNotificationsOpen(false);
+      }
+
+      if (typeof link === "string" && link.trim() !== "") {
+        if (/^https?:\/\//i.test(link)) {
+          if (typeof window !== "undefined") {
+            window.open(link, "_blank", "noopener,noreferrer");
+          }
+        } else {
+          navigate(link);
+        }
+      }
+    },
+    [markAsRead, navigate]
+  );
+
+  const handleNotificationDelete = useCallback(
+    async (event, notification) => {
+      event?.preventDefault();
+      event?.stopPropagation();
+
+      if (!notification?.id) {
+        return;
+      }
+
+      setPendingDeleteId(notification.id);
+      try {
+        await deleteNotification(notification.id);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("No se pudo eliminar la notificacion", err);
+      } finally {
+        setPendingDeleteId("");
+      }
+    },
+    [deleteNotification]
+  );
+
+  const handleMarkAllRead = useCallback(async () => {
+    setIsMarkingAll(true);
+    try {
+      await markAllAsRead();
+    } catch {
+      // ignoramos errores globales
+    } finally {
+      setIsMarkingAll(false);
+    }
+  }, [markAllAsRead]);
 
   const displayName =
     user?.displayName ||
@@ -212,6 +365,24 @@ export function Header() {
   const avatarAlt = displayName
     ? "Avatar de " + displayName
     : "Avatar de usuario";
+
+  const notificationsButtonLabel = useMemo(() => {
+    if (unreadCount > 0) {
+      const limited = unreadCount > 99 ? "99+" : unreadCount;
+      return `Ver notificaciones (${limited} sin leer)`;
+    }
+    return "Ver notificaciones";
+  }, [unreadCount]);
+
+  const unreadBadge = useMemo(() => {
+    if (unreadCount <= 0) {
+      return "";
+    }
+    if (unreadCount > 99) {
+      return "99+";
+    }
+    return String(unreadCount);
+  }, [unreadCount]);
 
   return (
     <header className="sticky top-0 z-50 w-full bg-red-50 shadow">
@@ -259,14 +430,139 @@ export function Header() {
 
         {/* Right side actions */}
         <div className="flex flex-shrink-0 items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative rounded-full hover:bg-red-100"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-gradient-to-br from-rose-500 via-red-400 to-red-500" />
-          </Button>
+          <div className="relative" ref={notificationsRef}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative rounded-full hover:bg-red-100"
+              aria-label={notificationsButtonLabel}
+              aria-haspopup="true"
+              aria-expanded={isNotificationsOpen}
+              onClick={handleToggleNotifications}
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 ? (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 via-red-400 to-red-500 px-1 text-[10px] font-bold text-white">
+                  {unreadBadge}
+                </span>
+              ) : null}
+            </Button>
+
+            {isNotificationsOpen ? (
+              <div className="absolute right-0 mt-2 w-80 max-w-xs rounded-xl border border-slate-200 bg-white shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
+                  <p className="text-sm font-semibold text-slate-800">
+                    Notificaciones
+                  </p>
+                  {notifications.length > 0 ? (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={handleMarkAllRead}
+                      disabled={
+                        isMarkingAll ||
+                        notificationsLoading ||
+                        unreadCount === 0
+                      }
+                    >
+                      {isMarkingAll ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <CheckCheck className="h-3 w-3" />
+                      )}
+                      Marcar todas
+                    </button>
+                  ) : null}
+                </div>
+                <div className="max-h-80 overflow-y-auto p-2">
+                  {notificationsLoading ? (
+                    <div className="flex items-center justify-center gap-2 py-8 text-xs text-slate-500">
+                      <Loader2 className="h-4 w-4 animate-spin text-rose-400" />
+                      Cargando notificaciones...
+                    </div>
+                  ) : notifications.length === 0 ? (
+                    <div className="space-y-2 py-6 text-center text-xs text-slate-500">
+                      <p>
+                        {notificationsError
+                          ? notificationsError
+                          : "No tienes notificaciones por ahora."}
+                      </p>
+                    </div>
+                  ) : (
+                    <ul className="space-y-2">
+                      {notifications.map((notification) => {
+                        const Icon =
+                          notificationIcons[notification.type] ??
+                          notificationIcons.general;
+                        return (
+                          <li key={notification.id}>
+                            <div className="flex items-start gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleNotificationClick(notification)
+                                }
+                                className={`flex flex-1 items-start gap-3 rounded-lg border border-transparent px-3 py-3 text-left transition ${
+                                  notification.read
+                                    ? "bg-red-50/60 hover:bg-red-100/70"
+                                    : "bg-rose-50 hover:bg-rose-100"
+                                }`}
+                              >
+                                <span
+                                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
+                                    notification.read
+                                      ? "bg-white text-rose-400 ring-1 ring-rose-200"
+                                      : "bg-gradient-to-br from-rose-500 via-red-400 to-red-500 text-white"
+                                  }`}
+                                >
+                                  <Icon className="h-5 w-5" />
+                                </span>
+                                <div className="flex flex-1 flex-col gap-1 text-xs text-slate-600">
+                                  <p className="text-sm font-semibold text-slate-800">
+                                    {notification.title}
+                                  </p>
+                                  {notification.message ? (
+                                    <p className="line-clamp-2">
+                                      {notification.message}
+                                    </p>
+                                  ) : null}
+                                  {notification.formattedDate ? (
+                                    <span className="text-[11px] uppercase tracking-wide text-slate-500">
+                                      {notification.formattedDate}
+                                    </span>
+                                  ) : null}
+                                </div>
+                                {!notification.read ? (
+                                  <span className="mt-1 inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-rose-500" />
+                                ) : null}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(event) =>
+                                  handleNotificationDelete(event, notification)
+                                }
+                                disabled={pendingDeleteId === notification.id}
+                                className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-transparent bg-white/80 text-slate-400 transition hover:border-rose-200 hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                {pendingDeleteId === notification.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
+                                <span className="sr-only">
+                                  Eliminar notificación
+                                </span>
+                              </button>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
 
           <div className="relative" ref={menuRef}>
             <button

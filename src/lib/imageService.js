@@ -101,6 +101,17 @@ export function buildImageUrl(path) {
   if (!path) {
     return "";
   }
+  if (typeof path === "object") {
+    const candidate =
+      path?.webp ??
+      path?.png ??
+      path?.path ??
+      "";
+    return buildImageUrl(candidate);
+  }
+  if (typeof path !== "string") {
+    return "";
+  }
   if (/^https?:\/\//i.test(path)) {
     return path;
   }
@@ -109,7 +120,11 @@ export function buildImageUrl(path) {
       ? import.meta.env.VITE_API_BASE_URL.replace(/\/?api\/?$/, "")
       : "");
   if (!base) {
-    return normalizePath(path);
+    const normalized = normalizePath(path);
+    if (normalized.startsWith("/storage/")) {
+      return normalized;
+    }
+    return `/storage${normalized}`;
   }
   const baseClean = base.endsWith("/") ? base.slice(0, -1) : base;
   const normalized = normalizePath(path);

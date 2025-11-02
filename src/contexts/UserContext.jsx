@@ -7,6 +7,11 @@ import {
   useState,
 } from "react";
 import api from "@/lib/axios";
+import { buildImageUrl } from "@/lib/imageService";
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  normalizeNotificationPreferences,
+} from "@/lib/notifications";
 
 const UserContext = createContext(null);
 const USER_STORAGE_KEY = "authUser";
@@ -23,6 +28,9 @@ const DEFAULT_USER = {
   telefono: "",
   avatar: "",
   initials: "UP",
+  notificationPreferences: [...DEFAULT_NOTIFICATION_PREFERENCES],
+  preferenciaNotificacion: [...DEFAULT_NOTIFICATION_PREFERENCES],
+  preferenciaNotificacionPersonalizada: false,
 };
 
 const pickString = (...values) => {
@@ -63,6 +71,27 @@ const computeInitials = (value) => {
     .map((part) => part[0]?.toUpperCase())
     .join("")
     .padEnd(2, "P");
+};
+
+const resolveImagePath = (value) => {
+  if (!value) {
+    return "";
+  }
+  if (typeof value === "string") {
+    return value.trim();
+  }
+  if (Array.isArray(value) && value.length > 0) {
+    return resolveImagePath(value[0]);
+  }
+  if (typeof value === "object") {
+    return (
+      value.webp ||
+      value.png ||
+      value.path ||
+      ""
+    );
+  }
+  return "";
 };
 
 const normalizeUser = (rawUser) => {
@@ -108,14 +137,19 @@ const normalizeUser = (rawUser) => {
     rawUser.celular,
     rawUser.mobile
   );
-  const avatar = pickString(
-    rawUser?.perfil?.imagenPrincipal,
-    rawUser?.perfil?.avatar,
-    rawUser.avatar,
-    rawUser.foto,
-    rawUser.image,
-    rawUser.photo
-  );
+  const avatarData =
+    rawUser?.perfil?.imagenPrincipal ?? rawUser?.perfil?.avatar ?? null;
+  const avatarPath = resolveImagePath(avatarData);
+  const fallbackAvatarRaw =
+    typeof rawUser?.avatar === "object"
+      ? rawUser.avatar
+      : pickString(
+          rawUser?.avatar,
+          rawUser?.foto,
+          rawUser?.image,
+          rawUser?.photo
+        );
+  const avatar = buildImageUrl(avatarPath || fallbackAvatarRaw || "");
   const username = pickString(rawUser.username, rawUser?.perfil?.username);
 
   const fechaNacimiento = formatDate(fechaNacimientoRaw);
@@ -125,6 +159,17 @@ const normalizeUser = (rawUser) => {
     correo ||
     DEFAULT_USER.displayName;
   const initials = computeInitials(displayName || correo || DEFAULT_USER.displayName);
+  const notificationPreferences = normalizeNotificationPreferences(
+    rawUser.preferenciaNotificacion,
+    { fallbackToDefault: true }
+  );
+  const preferenciasPersonalizadasRaw =
+    rawUser?.preferenciaNotificacionPersonalizada;
+  const preferenciaNotificacionPersonalizada =
+    preferenciasPersonalizadasRaw === true ||
+    preferenciasPersonalizadasRaw === 1 ||
+    preferenciasPersonalizadasRaw === "1" ||
+    preferenciasPersonalizadasRaw === "true";
 
   return {
     ...rawUser,
@@ -136,9 +181,13 @@ const normalizeUser = (rawUser) => {
     rol,
     telefono,
     avatar,
+    avatarPaths: avatarData,
     username,
     displayName,
     initials,
+    notificationPreferences,
+    preferenciaNotificacion: notificationPreferences,
+    preferenciaNotificacionPersonalizada,
   };
 };
 
@@ -295,6 +344,7 @@ export function UserProvider({ children }) {
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useUser() {
   const context = useContext(UserContext);
   if (!context) {

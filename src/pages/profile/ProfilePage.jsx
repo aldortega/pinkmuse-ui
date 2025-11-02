@@ -1,23 +1,55 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Header from "@/components/home/Header";
 import Footer from "@/components/landing/Footer";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Shield } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useUser } from "@/contexts/UserContext";
+import api from "@/lib/axios";
+import { normalizeNotificationPreferences } from "@/lib/notifications";
+import { buildImageUrl, uploadImage } from "@/lib/imageService";
+import ProfileHeader from "@/components/profile/ProfileHeader";
+import ProfileInfo from "@/components/profile/ProfileInfo";
+import ProfileNotifications from "@/components/profile/ProfileNotifications";
 
 const FALLBACK_NAME = "Usuario PinkMuse";
 const FALLBACK_EMAIL = "Sin correo registrado";
 const FALLBACK_ROLE = "Miembro";
 
+const NOTIFICATION_OPTIONS = [
+  {
+    value: "evento",
+    label: "Eventos",
+    description:
+      "Recibe alertas cuando publiquemos nuevos shows, fechas y experiencias.",
+  },
+  {
+    value: "producto",
+    label: "Merchandising",
+    description:
+      "Enterate al instante cuando haya nuevos productos o reposiciones exclusivas.",
+  },
+  {
+    value: "noticia",
+    label: "Noticias",
+    description:
+      "Mantente al dia con entrevistas, anuncios y novedades de PinkMuse.",
+  },
+];
+
 export default function ProfilePage() {
-  const { user, loading, error, refreshUser } = useUser();
+  const { user, loading, error, refreshUser, setUser } = useUser();
+  const [preferences, setPreferences] = useState(() =>
+    normalizeNotificationPreferences(
+      user?.notificationPreferences ?? user?.preferenciaNotificacion,
+      { fallbackToDefault: true }
+    )
+  );
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
+  const [preferencesError, setPreferencesError] = useState("");
+  const [preferencesMessage, setPreferencesMessage] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
+  const [avatarMessage, setAvatarMessage] = useState("");
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     refreshUser().catch(() => {
@@ -25,8 +57,36 @@ export default function ProfilePage() {
     });
   }, [refreshUser]);
 
+  useEffect(() => {
+    setPreferences(
+      normalizeNotificationPreferences(
+        user?.notificationPreferences ?? user?.preferenciaNotificacion,
+        { fallbackToDefault: true }
+      )
+    );
+    setPreferencesError("");
+    setPreferencesMessage("");
+  }, [user?.notificationPreferences, user?.preferenciaNotificacion]);
+
+  useEffect(() => {
+    setAvatarError("");
+    setAvatarMessage("");
+  }, [user?.avatar, user?.avatarPaths]);
+
+  const avatarPaths = user?.avatarPaths ?? user?.perfil?.imagenPrincipal ?? null;
+  const avatarSource =
+    user?.avatar ??
+    avatarPaths ??
+    user?.perfil?.avatar ??
+    user?.foto ??
+    "";
+  const avatarUrl = useMemo(
+    () => buildImageUrl(avatarSource),
+    [avatarSource]
+  );
+  const username =
+    user?.username || user?.perfil?.username || user?.correo || "";
   const displayName = user?.displayName || FALLBACK_NAME;
-  const avatarUrl = user?.avatar || user?.perfil?.imagenPrincipal || "";
   const initials = user?.initials || displayName.slice(0, 2).toUpperCase();
   const firstName = user?.nombre || FALLBACK_NAME;
   const lastName = user?.apellido || "No registrado";
@@ -48,6 +108,171 @@ export default function ProfilePage() {
     ],
     [firstName, lastName, nationality, birthDate, email, role, phone]
   );
+  const hasAvatar = Boolean(avatarUrl);
+
+  const triggerAvatarFile = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleAvatarFileChange = useCallback(
+    async (event) => {
+      const file = event.target.files?.[0];
+      if (!file || !username) {
+        if (event.target) {
+          event.target.value = "";
+        }
+        return;
+      }
+
+      setAvatarError("");
+      setAvatarMessage("");
+      setAvatarUploading(true);
+
+      try {
+        const uploaded = await uploadImage({
+          file,
+          tipo: "usuario",
+          nombre: username,
+        });
+        const payload = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+        if (!payload) {
+          throw new Error("No recibimos la ruta de la imagen.");
+        }
+
+        const response = await api.put(
+          `/usuarios/${encodeURIComponent(username)}`,
+          {
+            perfil: {
+              imagenPrincipal: payload,
+            },
+          }
+        );
+        const updatedUser = response?.data?.data ?? null;
+        if (updatedUser) {
+          setUser(updatedUser);
+        }
+        setAvatarMessage("Foto de perfil actualizada.");
+      } catch (err) {
+        const message =
+          err?.response?.data?.message ||
+          err?.message ||
+          "No pudimos actualizar tu foto de perfil.";
+        setAvatarError(message);
+      } finally {
+        setAvatarUploading(false);
+        if (event.target) {
+          event.target.value = "";
+        }
+      }
+    },
+    [username, setUser]
+  );
+
+  const handleRemoveAvatar = useCallback(async () => {
+    if (!username) {
+      return;
+    }
+
+    setAvatarError("");
+    if (!avatarPaths && !user?.avatar) {
+      setAvatarMessage("No tenes una foto de perfil cargada.");
+      return;
+    }
+
+    setAvatarMessage("");
+    setAvatarUploading(true);
+
+    try {
+      const response = await api.put(
+        `/usuarios/${encodeURIComponent(username)}`,
+        {
+          perfil: {
+            imagenPrincipal: null,
+          },
+        }
+      );
+      const updatedUser = response?.data?.data ?? null;
+      const sourceUser = updatedUser ?? user ?? null;
+
+      if (sourceUser) {
+        const sanitizedPerfil = {
+          ...(sourceUser.perfil ?? {}),
+          imagenPrincipal: null,
+          avatar: null,
+        };
+        const sanitizedUser = {
+          ...sourceUser,
+          avatar: null,
+          avatarPaths: null,
+          foto: null,
+          image: null,
+          photo: null,
+          perfil: sanitizedPerfil,
+        };
+
+        setUser(sanitizedUser);
+      }
+
+      setAvatarMessage("Foto de perfil eliminada.");
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "No pudimos eliminar tu foto de perfil.";
+      setAvatarError(message);
+    } finally {
+      setAvatarUploading(false);
+    }
+  }, [username, avatarPaths, user, setUser]);
+
+  const handleTogglePreference = useCallback(
+    async (value) => {
+      const currentNormalized = normalizeNotificationPreferences(preferences, {
+        fallbackToDefault: false,
+      });
+
+      const hasValue = currentNormalized.includes(value);
+      const next = hasValue
+        ? currentNormalized.filter((item) => item !== value)
+        : [...currentNormalized, value];
+
+      setPreferences(next);
+      setPreferencesError("");
+      setPreferencesMessage("");
+      setPreferencesSaving(true);
+
+      try {
+        const response = await api.put(
+          "/usuario/preferencias/notificaciones",
+          { preferencias: next }
+        );
+        const updatedUser = response?.data?.data ?? null;
+        if (updatedUser) {
+          setUser(updatedUser);
+          const updatedPreferences = normalizeNotificationPreferences(
+            updatedUser.preferenciaNotificacion,
+            { fallbackToDefault: false }
+          );
+          setPreferences(updatedPreferences);
+        }
+        setPreferencesMessage("Preferencias actualizadas.");
+      } catch (err) {
+        const message =
+          err?.response?.data?.message ||
+          err?.message ||
+          "No pudimos actualizar tus preferencias.";
+        setPreferencesError(message);
+        setPreferences(currentNormalized);
+      } finally {
+        setPreferencesSaving(false);
+      }
+    },
+    [preferences, setUser]
+  );
+
+  const notificationSummary = preferences.length > 0
+    ? "Recibirás avisos según tus selecciones."
+    : "No recibirás notificaciones hasta que actives al menos una opción.";
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-red-50 via-rose-50 to-white">
@@ -67,58 +292,46 @@ export default function ProfilePage() {
         ) : (
           <>
             <Card className="bg-white/90">
-              <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-16 w-16 border border-red-200">
-                    {avatarUrl ? (
-                      <AvatarImage src={avatarUrl} alt={displayName} />
-                    ) : null}
-                    <AvatarFallback className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 text-lg font-semibold text-white">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-1">
-                    <CardTitle className="text-xl text-slate-900 sm:text-2xl">
-                      {displayName}
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-2 text-slate-600">
-                      <Shield className="h-4 w-4" />
-                      {role}
-                    </CardDescription>
-                  </div>
-                </div>
+              <CardHeader>
+                <ProfileHeader 
+                  hasAvatar={hasAvatar}
+                  avatarUrl={avatarUrl}
+                  displayName={displayName}
+                  initials={initials}
+                  role={role}
+                  triggerAvatarFile={triggerAvatarFile}
+                  avatarUploading={avatarUploading}
+                  handleRemoveAvatar={handleRemoveAvatar}
+                  avatarError={avatarError}
+                  avatarMessage={avatarMessage}
+                  handleAvatarFileChange={handleAvatarFileChange}
+                  fileInputRef={fileInputRef}
+                />
               </CardHeader>
-
-              <CardContent className="space-y-6">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {infoItems.map((item) => (
-                    <div
-                      key={item.label}
-                      className="rounded-lg border border-red-100 bg-red-50/60 px-4 py-3 text-sm text-slate-700"
-                    >
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        {item.label}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-800">
-                        {item.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+              <CardContent>
+                <ProfileInfo infoItems={infoItems} />
               </CardContent>
             </Card>
 
             <Card className="bg-white/90">
               <CardHeader>
-                <CardTitle className="text-lg text-slate-900">Preferencias</CardTitle>
+                <CardTitle className="text-lg text-slate-900">
+                  Notificaciones
+                </CardTitle>
                 <CardDescription className="text-slate-600">
-                  Pronto podras personalizar tu experiencia dentro de PinkMuse desde esta seccion.
+                  Elegi que tipo de novedades queres recibir de PinkMuse.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-slate-600">
-                  Estamos preparando nuevas herramientas para que gestiones tu perfil, intereses y configuraciones de manera sencilla.
-                </p>
+                <ProfileNotifications 
+                  preferencesError={preferencesError}
+                  preferencesMessage={preferencesMessage}
+                  preferencesSaving={preferencesSaving}
+                  notificationOptions={NOTIFICATION_OPTIONS}
+                  preferences={preferences}
+                  handleTogglePreference={handleTogglePreference}
+                  notificationSummary={notificationSummary}
+                />
               </CardContent>
             </Card>
           </>
