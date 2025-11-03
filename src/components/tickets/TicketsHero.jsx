@@ -16,8 +16,7 @@ export default function TicketsHero({ upcomingCount = 0 }) {
           </h1>
           <p className="text-base text-white/85 sm:text-lg">
             Elegí tu fecha, tu ubicación favorita y el tipo de experiencia que
-            querés vivir. Toda la información de precios y disponibilidad se
-            actualiza directamente desde nuestros eventos.
+            querés vivir.
           </p>
         </div>
 

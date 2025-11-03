@@ -64,8 +64,8 @@ export default function TicketSelectionSummary({
           {totalTickets > 0 ? `${totalTickets} entradas` : "Sin entradas"}
         </h2>
         <p className="text-sm text-slate-600">
-          No realizamos el cobro todavía. Confirmá las cantidades y luego
-          avanzá con el pago en el siguiente paso.
+          No realizamos el cobro todavía. Confirmá las cantidades y luego avanzá
+          con el pago en el siguiente paso.
         </p>
       </div>
 
@@ -137,8 +137,8 @@ export default function TicketSelectionSummary({
           Próximamente
         </AlertTitle>
         <AlertDescription className="text-xs text-slate-600">
-          Estamos integrando el flujo de pago con el backend. Por ahora solo
-          podrás simular la selección de entradas y revisar los costos.
+          Por ahora solo se puede simular la selección de entradas y revisar los
+          costos.
         </AlertDescription>
       </Alert>
     </aside>
