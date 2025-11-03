@@ -1,6 +1,11 @@
-import { Link } from "react-router-dom";
+
+import { useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useUser } from "@/contexts/UserContext";
+import { useMerch } from "@/contexts/MerchContext";
 import { formatCurrency } from "@/lib/merch";
 
 export default function MerchProductCard({ product }) {
@@ -14,6 +19,29 @@ export default function MerchProductCard({ product }) {
     etiquetas = [],
     stock,
   } = product;
+
+  const navigate = useNavigate();
+  const { deleteProduct, deletingIds } = useMerch();
+  const { user, isAdmin } = useUser();
+  const productId = product?._id ?? product?.id ?? null;
+  const isDeleting = productId ? deletingIds.includes(productId) : false;
+
+  const handleDelete = useCallback(async () => {
+    if (!productId) {
+      return;
+    }
+    const message = `Deseas eliminar "${nombre}" del catalogo? Esta accion no se puede deshacer.`;
+    const confirmed = window.confirm(message);
+    if (!confirmed) {
+      return;
+    }
+    try {
+      await deleteProduct(productId);
+    } catch (error) {
+      const messageError = error?.message || "No pudimos eliminar el producto.";
+      window.alert(messageError);
+    }
+  }, [deleteProduct, nombre, productId]);
 
   const stockDisponible = stock?.total ?? 0;
 
@@ -59,13 +87,38 @@ export default function MerchProductCard({ product }) {
             {stockDisponible > 0 ? `${stockDisponible} disponibles` : "Sin stock"}
           </span>
         </div>
-        <Link
-          to={`/merch/${slug}`}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-400 hover:bg-red-50 hover:text-red-600"
-        >
-          Ver detalles
-          <ArrowUpRight className="h-4 w-4" />
-        </Link>
+        <div className="flex flex-col gap-2">
+          <Link
+            to={`/merch/${slug}`}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-400 hover:bg-red-50 hover:text-red-600"
+          >
+            Ver detalles
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
+          {isAdmin ? (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="flex-1 border-slate-200 text-slate-700 hover:border-red-300 hover:text-red-600"
+                onClick={() => navigate(`/merch/${slug}/editar`)}
+              >
+                Editar
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="flex-1 bg-red-100 text-red-600 hover:bg-red-200"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Eliminando..." : "Eliminar"}
+              </Button>
+            </div>
+          ) : null}
+        </div>
       </CardContent>
     </Card>
   );

@@ -17,9 +17,10 @@ export default function RelatedProducts({ products = [] }) {
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((product) => (
-          <MerchProductCard key={product._id} product={product} />
-        ))}
+        {products.map((product) => {
+          const key = product?.id ?? product?._id ?? product?.slug;
+          return <MerchProductCard key={key} product={product} />;
+        })}
       </div>
     </section>
   );

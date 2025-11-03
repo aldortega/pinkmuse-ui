@@ -1,4 +1,5 @@
-import { Filter, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Filter, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function MerchToolbar({
@@ -24,7 +25,7 @@ export default function MerchToolbar({
           />
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button
             type="button"
             variant={onlyInStock ? "default" : "outline"}
@@ -33,6 +34,16 @@ export default function MerchToolbar({
           >
             <Filter className="h-4 w-4" />
             Stock
+          </Button>
+          <Button
+            type="button"
+            className="gap-2 bg-gradient-to-r from-rose-500 via-red-400 to-red-500 text-white shadow-sm hover:brightness-105"
+            asChild
+          >
+            <Link to="/merch/nuevo">
+              <Plus className="h-4 w-4" />
+              Crear producto
+            </Link>
           </Button>
         </div>
       </div>
