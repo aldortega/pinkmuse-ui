@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import api from "@/lib/axios";
-import { Header } from "../home/Header";
+import Header from "../home/Header";
 import { EventCategoryTabs } from "./EventCategoryTabs";
 import { EventEditDialog } from "./EventEditDialog";
 import { EventManagementHeader } from "./EventManagementHeader";

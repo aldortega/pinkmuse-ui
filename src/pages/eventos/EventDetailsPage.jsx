@@ -4,7 +4,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 
 import api from "@/lib/axios";
 
-import { Header } from "@/components/home/Header";
+import Header from "@/components/home/Header";
 import { EventDetails } from "@/components/eventos/EventDetails";
 import { EventEditDialog } from "@/components/eventos/EventEditDialog";
 import { EventsFeedback } from "@/components/eventos/EventsFeedback";
