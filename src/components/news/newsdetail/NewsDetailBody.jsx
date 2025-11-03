@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { buildImageUrl } from "@/lib/imageService";
 import ArticleImage from "@/components/noticias/ArticleImage";
 import ArticleContent from "@/components/noticias/ArticleContent";
 import ArticleShareBar from "@/components/noticias/ArticleShareBar";
@@ -74,7 +75,7 @@ export default function NewsDetailBody({
   return (
     <>
       <ArticleImage
-        src={article.imagenPrincipal}
+        src={buildImageUrl(article.imagenPrincipal)}
         alt={article.titulo}
         className="my-0"
         frameClassName="rounded-3xl"

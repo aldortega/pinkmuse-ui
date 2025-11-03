@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
 
+import {
+  buildImageUrl,
+  resolveImagePath,
+} from "@/lib/imageService";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -13,7 +16,6 @@ const DEFAULT_STATE = {
   resumen: "",
   fecha: "",
   imagenPrincipal: "",
-  imagenes: [""],
   autor: "",
   categoria: "",
   fuente: "",
@@ -24,7 +26,6 @@ const DEFAULT_STATE = {
 
 const createEmptyState = () => ({
   ...DEFAULT_STATE,
-  imagenes: [...DEFAULT_STATE.imagenes],
 });
 
 const formatDateForInput = (value) => {
@@ -55,13 +56,7 @@ const buildInitialState = (initialValues = null) => {
   state.descripcion = initialValues.descripcion ?? "";
   state.resumen = initialValues.resumen ?? "";
   state.fecha = formatDateForInput(initialValues.fecha);
-  state.imagenPrincipal = initialValues.imagenPrincipal ?? "";
-  const gallery = Array.isArray(initialValues.imagenes)
-    ? initialValues.imagenes
-        .map((item) => (typeof item === "string" ? item.trim() : ""))
-        .filter((item) => item.length > 0)
-    : [];
-  state.imagenes = gallery.length > 0 ? gallery : [""];
+  state.imagenPrincipal = resolveImagePath(initialValues.imagenPrincipal);
   state.autor = initialValues.autor ?? "";
   state.categoria = initialValues.categoria ?? "";
   state.fuente = initialValues.fuente ?? "";
@@ -84,8 +79,7 @@ const buildInitialState = (initialValues = null) => {
   return state;
 };
 
-const sanitizeImages = (imagenes = []) =>
-  imagenes.map((item) => item.trim()).filter((item) => item.length > 0);
+
 
 const sanitizeTags = (value) =>
   value
@@ -95,15 +89,14 @@ const sanitizeTags = (value) =>
 
 const buildPayload = (
   state,
+  primaryImage,
   { includeTipoActividad = true, isUpdate = false } = {}
 ) => {
-  const gallery = sanitizeImages(state.imagenes);
   const payload = {
     titulo: state.titulo.trim(),
     descripcion: state.descripcion.trim(),
     fecha: state.fecha ? new Date(state.fecha).toISOString() : null,
-    imagenPrincipal: state.imagenPrincipal.trim() || null,
-    imagenes: gallery.length > 0 ? gallery : isUpdate ? [] : null,
+    imagenPrincipal: primaryImage,
     habilitacionComentarios: Boolean(state.habilitacionComentarios),
     habilitacionAcciones: state.habilitacionAcciones ? "si" : "no",
   };
@@ -169,6 +162,13 @@ export default function NewsForm({
   const [state, setState] = useState(() => buildInitialState(initialValues));
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
+  const [primaryImage, setPrimaryImage] = useState(null);
+
+  const handlePrimaryImageChange = useCallback((event) => {
+    const file = event.target.files?.[0] ?? null;
+    setPrimaryImage(file);
+  }, []);
+
 
   useEffect(() => {
     if (!initialValues) {
@@ -189,28 +189,17 @@ export default function NewsForm({
     if (!nextState.fecha) {
       validationErrors.fecha = "Selecciona una fecha.";
     }
+    if (mode === "create" && !primaryImage) {
+        validationErrors.imagenPrincipal = "Debes seleccionar una imagen principal.";
+    }
     return validationErrors;
-  }, []);
+  }, [primaryImage, mode]);
   const handleFieldChange = useCallback((field, value) => {
     setState((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   }, []);
-  const handleImageChange = useCallback((index, value) => {
-    setState((prev) => {
-      const next = [...prev.imagenes];
-      next[index] = value;
-      return { ...prev, imagenes: next };
-    });
-  }, []);
-  const addGalleryImage = useCallback(() => {
-    setState((prev) => ({ ...prev, imagenes: [...prev.imagenes, ""] }));
-  }, []);
-  const removeGalleryImage = useCallback((index) => {
-    setState((prev) => {
-      const next = prev.imagenes.filter((_, idx) => idx !== index);
-      return { ...prev, imagenes: next.length > 0 ? next : [""] };
-    });
-  }, []);
+
+
   const handleSubmit = useCallback(
     async (event) => {
       event.preventDefault();
@@ -221,7 +210,7 @@ export default function NewsForm({
         return;
       }
       try {
-        const payload = buildPayload(state, {
+        const payload = buildPayload(state, primaryImage, {
           includeTipoActividad: mode === "create",
           isUpdate: mode === "edit",
         });
@@ -239,7 +228,7 @@ export default function NewsForm({
         throw err;
       }
     },
-    [clientValidate, onSubmit, state, mode, initialValues]
+    [clientValidate, onSubmit, state, mode, initialValues, primaryImage]
   );
   const handleDeleteClick = useCallback(() => {
     if (!onDelete || isSubmitting || isDeleting) {
@@ -257,6 +246,13 @@ export default function NewsForm({
     }
     return null;
   }, [apiError, submitError]);
+
+  const principalPreview = useMemo(() => {
+    if (primaryImage) {
+        return URL.createObjectURL(primaryImage);
+    }
+    return buildImageUrl(state.imagenPrincipal);
+  }, [primaryImage, state.imagenPrincipal]);
 
   const helperText =
     mode === "edit"
@@ -427,76 +423,40 @@ export default function NewsForm({
           </div>
           {/* <Divider /> */}
           <div className="mt-6 space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="imagenPrincipal">Imagen principal</Label>
-              <Input
-                id="imagenPrincipal"
-                value={state.imagenPrincipal}
-                onChange={(event) =>
-                  handleFieldChange("imagenPrincipal", event.target.value)
-                }
-                placeholder="URL de la imagen principal"
-                disabled={isSubmitting}
-                className={fieldInputClassName}
-              />
-              <p className="text-xs text-slate-600">
-                Preferentemente un enlace horizontal (webp o jpg).
-              </p>
-            </div>
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <Label className="text-sm font-semibold text-slate-800">
-                    Galeria (opcional)
-                  </Label>
-                  <p className="text-xs text-slate-600">
-                    Agrega imagenes complementarias que apareceran dentro del
-                    articulo.
+              <div className="space-y-2">
+                <Label htmlFor="imagenPrincipal">Imagen principal</Label>
+                <Input
+                  id="imagenPrincipal"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePrimaryImageChange}
+                  aria-invalid={Boolean(errors.imagenPrincipal)}
+                />
+                {primaryImage ? (
+                  <p className="text-xs text-slate-500">Archivo seleccionado: {primaryImage.name}</p>
+                ) : mode === "edit" ? (
+                  <p className="text-xs text-slate-500">
+                    Si no cargas una nueva imagen, se conservara la actual.
                   </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="text-slate-800 cursor-pointer hover:text-slate-800"
-                  size="sm"
-                  onClick={addGalleryImage}
-                  // className={`${secondaryButtonClassName} gap-2`}
-                  disabled={isSubmitting}
-                >
-                  <Plus className="h-4 w-4" />
-                  Agregar imagen
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {state.imagenes.map((imagen, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-card p-3 sm:flex-row sm:items-center"
-                  >
-                    <Input
-                      value={imagen}
-                      onChange={(event) =>
-                        handleImageChange(index, event.target.value)
-                      }
-                      placeholder="URL de la imagen adicional"
-                      disabled={isSubmitting}
-                      className={fieldInputClassName}
+                ) : null}
+                {errors.imagenPrincipal ? (
+                  <p className="text-xs text-red-500">{errors.imagenPrincipal}</p>
+                ) : null}
+                {principalPreview ? (
+                  <div className="rounded-md border border-border bg-card p-3">
+                    <p className="mb-2 text-xs font-semibold uppercase text-slate-500">
+                      Vista previa
+                    </p>
+                    <img
+                      src={principalPreview}
+                      alt="Vista previa de la noticia"
+                      className="h-40 w-full rounded-md object-cover"
+                      loading="lazy"
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeGalleryImage(index)}
-                      disabled={isSubmitting}
-                      className="self-end text-slate-600 hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Eliminar imagen</span>
-                    </Button>
                   </div>
-                ))}
+                ) : null}
               </div>
-            </div>
+
           </div>
         </section>
         <section className={panelClassName}>

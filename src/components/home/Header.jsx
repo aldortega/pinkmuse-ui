@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import api from "@/lib/axios";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -33,46 +32,46 @@ const getInitials = (value) => {
     .padEnd(2, "A");
 };
 
-const toStringId = (value) => {
-  if (!value) {
-    return "";
-  }
-  if (typeof value === "string") {
-    return value;
-  }
-  if (typeof value === "object") {
-    if (typeof value.$oid === "string") {
-      return value.$oid;
-    }
-    if (typeof value.oid === "string") {
-      return value.oid;
-    }
-    if (typeof value.id === "string") {
-      return value.id;
-    }
-  }
-  try {
-    return String(value);
-  } catch {
-    return "";
-  }
-};
+// const toStringId = (value) => {
+//   if (!value) {
+//     return "";
+//   }
+//   if (typeof value === "string") {
+//     return value;
+//   }
+//   if (typeof value === "object") {
+//     if (typeof value.$oid === "string") {
+//       return value.$oid;
+//     }
+//     if (typeof value.oid === "string") {
+//       return value.oid;
+//     }
+//     if (typeof value.id === "string") {
+//       return value.id;
+//     }
+//   }
+//   try {
+//     return String(value);
+//   } catch {
+//     return "";
+//   }
+// };
 
-const getRoleLabel = (role) => {
-  if (!role || typeof role !== "object") {
-    return "";
-  }
-  const label = (
-    typeof role.rol === "string" && role.rol.trim() !== ""
-      ? role.rol
-      : typeof role.nombre === "string" && role.nombre.trim() !== ""
-      ? role.nombre
-      : typeof role.displayName === "string" && role.displayName.trim() !== ""
-      ? role.displayName
-      : ""
-  ).trim();
-  return label;
-};
+// const getRoleLabel = (role) => {
+//   if (!role || typeof role !== "object") {
+//     return "";
+//   }
+//   const label = (
+//     typeof role.rol === "string" && role.rol.trim() !== ""
+//       ? role.rol
+//       : typeof role.nombre === "string" && role.nombre.trim() !== ""
+//       ? role.nombre
+//       : typeof role.displayName === "string" && role.displayName.trim() !== ""
+//       ? role.displayName
+//       : ""
+//   ).trim();
+//   return label;
+// };
 
 const notificationIcons = {
   evento: CalendarDays,
@@ -81,9 +80,9 @@ const notificationIcons = {
   general: Bell,
 };
 
-export function Header() {
+export default function Header() {
   const navigate = useNavigate();
-  const { user, logout } = useUser();
+  const { user, logout, isAdmin } = useUser();
   const {
     notifications,
     unreadCount,
@@ -94,61 +93,13 @@ export function Header() {
     markAllAsRead,
     deleteNotification,
   } = useNotifications();
-  const [adminRoleIds, setAdminRoleIds] = useState([]);
-  const rolesFetchPending = useRef(false);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isMarkingAll, setIsMarkingAll] = useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = useState("");
   const menuRef = useRef(null);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = useRef(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (!user) {
-      setAdminRoleIds([]);
-      rolesFetchPending.current = false;
-      return;
-    }
-
-    if (adminRoleIds.length > 0 || rolesFetchPending.current) {
-      return;
-    }
-
-    rolesFetchPending.current = true;
-
-    api
-      .get("/roles")
-      .then(({ data }) => {
-        if (cancelled) {
-          return;
-        }
-
-        const items = Array.isArray(data?.data) ? data.data : [];
-        const adminIds = items
-          .map((role) => {
-            const id = toStringId(role?._id ?? role?.id);
-            const label = getRoleLabel(role);
-            return { id, label };
-          })
-          .filter((item) => item.id && item.label)
-          .filter((item) => item.label.toLowerCase().includes("admin"))
-          .map((item) => item.id);
-
-        setAdminRoleIds(adminIds);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setAdminRoleIds([]);
-          rolesFetchPending.current = false;
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user, adminRoleIds.length]);
+  const [pendingDeleteId, setPendingDeleteId] = useState("");
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   useEffect(() => {
     if (!isMenuOpen) {
@@ -220,38 +171,6 @@ export function Header() {
       setIsNotificationsOpen(false);
     }
   }, [user]);
-
-  const isAdmin = useMemo(() => {
-    if (!user) {
-      return false;
-    }
-
-    const candidates = [
-      user?.rol,
-      user?.rolRelacion?.rol,
-      user?.rolRelacion?.nombre,
-      user?.rol?.rol,
-      user?.rol?.nombre,
-      user?.rol?.displayName,
-    ];
-
-    if (
-      candidates.some(
-        (value) =>
-          typeof value === "string" &&
-          value.trim().toLowerCase().includes("admin")
-      )
-    ) {
-      return true;
-    }
-
-    const currentRoleId = toStringId(user?.rol_id ?? user?.rolId);
-    if (currentRoleId && adminRoleIds.includes(currentRoleId)) {
-      return true;
-    }
-
-    return false;
-  }, [user, adminRoleIds]);
 
   const handleLogout = async () => {
     setIsMenuOpen(false);
@@ -327,7 +246,6 @@ export function Header() {
       try {
         await deleteNotification(notification.id);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("No se pudo eliminar la notificacion", err);
       } finally {
         setPendingDeleteId("");
@@ -496,13 +414,12 @@ export function Header() {
                           notificationIcons.general;
                         return (
                           <li key={notification.id}>
-                            <div className="flex items-start gap-2">
-                              <button
-                                type="button"
+                            <div className="relative">
+                              <div
                                 onClick={() =>
                                   handleNotificationClick(notification)
                                 }
-                                className={`flex flex-1 items-start gap-3 rounded-lg border border-transparent px-3 py-3 text-left transition ${
+                                className={`flex flex-1 items-start gap-3 rounded-lg border border-transparent px-3 py-3 text-left transition cursor-pointer ${
                                   notification.read
                                     ? "bg-red-50/60 hover:bg-red-100/70"
                                     : "bg-rose-50 hover:bg-rose-100"
@@ -535,14 +452,14 @@ export function Header() {
                                 {!notification.read ? (
                                   <span className="mt-1 inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-rose-500" />
                                 ) : null}
-                              </button>
+                              </div>
                               <button
                                 type="button"
                                 onClick={(event) =>
                                   handleNotificationDelete(event, notification)
                                 }
                                 disabled={pendingDeleteId === notification.id}
-                                className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-transparent bg-white/80 text-slate-400 transition hover:border-rose-200 hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-white text-slate-400 transition hover:bg-red-100 hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
                               >
                                 {pendingDeleteId === notification.id ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -628,5 +545,3 @@ export function Header() {
     </header>
   );
 }
-
-export default Header;
