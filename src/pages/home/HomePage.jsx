@@ -1,20 +1,17 @@
-import { Header } from "@/components/home/Header";
-
-import WelcomeSection from "@/components/home/WelcomeSection";
-import UpcomingEvents from "@/components/home/UpcomingEvents";
-import Merchandise from "@/components/home/Merchandise";
-import NewsUpdates from "@/components/home/NewsUpdates";
+import Header from "@/components/home/Header";
 import Footer from "@/components/landing/Footer";
+import WelcomeSection from "@/components/home/WelcomeSection";
+import { DynamicWall } from "@/components/home/DynamicWall";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-slate-50">
       <Header />
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 sm:gap-12 sm:px-6">
+      <main className="mx-auto w-full max-w-7xl flex-col gap-8 p-4 sm:p-6">
         <WelcomeSection />
-        <UpcomingEvents />
-        <Merchandise />
-        <NewsUpdates />
+        <div className="mt-8">
+          <DynamicWall />
+        </div>
       </main>
       <Footer />
     </div>
