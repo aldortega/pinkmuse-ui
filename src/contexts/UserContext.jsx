@@ -211,6 +211,22 @@ export function UserProvider({ children }) {
   const [user, setUser] = useState(() => readStoredUser());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [adminRoleIds, setAdminRoleIds] = useState([]);
+
+  useEffect(() => {
+    api.get("/roles").then(({ data }) => {
+      const items = Array.isArray(data?.data) ? data.data : [];
+      const adminIds = items
+        .map((role) => {
+          const id = role?._id ?? role?.id;
+          const label = role?.rol || role?.nombre || "";
+          return { id, label };
+        })
+        .filter((item) => item.id && item.label.toLowerCase().includes("admin"))
+        .map((item) => item.id);
+      setAdminRoleIds(adminIds);
+    });
+  }, []);
 
   const persistUser = useCallback((value) => {
     if (typeof window === "undefined") {
@@ -327,18 +343,51 @@ export function UserProvider({ children }) {
     };
   }, [refreshUser, user]);
 
+  const isAdmin = useMemo(() => {
+    if (!user) {
+      return false;
+    }
+
+    const candidates = [
+      user?.rol,
+      user?.rolRelacion?.rol,
+      user?.rolRelacion?.nombre,
+      user?.rol?.rol,
+      user?.rol?.nombre,
+      user?.rol?.displayName,
+    ];
+
+    if (
+      candidates.some(
+        (value) =>
+          typeof value === "string" &&
+          value.trim().toLowerCase().includes("admin")
+      )
+    ) {
+      return true;
+    }
+
+    const currentRoleId = user?.rol_id ?? user?.rolId;
+    if (currentRoleId && adminRoleIds.includes(currentRoleId)) {
+      return true;
+    }
+
+    return false;
+  }, [user, adminRoleIds]);
+
   const value = useMemo(
     () => ({
       user,
       loading,
       error,
       isAuthenticated: Boolean(user),
+      isAdmin,
       setUser: setUserData,
       refreshUser,
       clearUser,
       logout,
     }),
-    [user, loading, error, setUserData, refreshUser, clearUser, logout]
+    [user, loading, error, isAdmin, setUserData, refreshUser, clearUser, logout]
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
