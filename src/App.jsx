@@ -25,6 +25,8 @@ import { EventProvider } from "@/contexts/EventContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import { MerchProvider } from "@/contexts/MerchContext";
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 
 export default function App() {
   return (
@@ -40,6 +42,14 @@ export default function App() {
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/register" element={<RegisterPage />} />
+                      <Route
+                        path="/forgotten"
+                        element={<ForgotPasswordPage />}
+                      />
+                      <Route
+                        path="/reset-password"
+                        element={<ResetPasswordPage />}
+                      />
                       <Route
                         path="/home"
                         element={
