@@ -38,11 +38,11 @@ export default function TicketTypeList({
       {tickets.map((ticket, index) => {
         const cantidadDisponible = parseCantidad(ticket?.cantidad);
         const precio = parsePrecio(ticket?.precio);
-        const estado = ticket?.estado ?? "disponible";
+        const estado = ticket?.estado ?? "Disponible";
         const maximo = Math.max(cantidadDisponible, 0);
         const selected = quantities[index] ?? 0;
         const disabled =
-          estado !== "disponible" || cantidadDisponible <= 0 || maximo === 0;
+          estado !== "Disponible" || cantidadDisponible <= 0 || maximo === 0;
 
         const handleDecrease = () => {
           const next = Math.max(selected - 1, 0);

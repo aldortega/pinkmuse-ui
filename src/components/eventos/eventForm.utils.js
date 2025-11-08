@@ -9,26 +9,21 @@ const resolveImageValue = (value) => {
     return resolveImageValue(value[0]);
   }
   if (typeof value === "object") {
-    return (
-      value.webp ||
-      value.png ||
-      value.path ||
-      ""
-    );
+    return value.webp || value.png || value.path || "";
   }
   return "";
 };
 
 export const EVENT_STATUS_OPTIONS = [
-  { value: "programado", label: "Programado" },
-  { value: "pospuesto", label: "Pospuesto" },
-  { value: "cancelado", label: "Cancelado" },
+  { value: "Activo", label: "Programado" },
+  { value: "Suspendido", label: "Suspendido" },
+  { value: "Cancelado", label: "Cancelado" },
 ];
 
 export const ENTRADA_STATUS_OPTIONS = [
-  { value: "disponible", label: "Disponible" },
-  { value: "agotada", label: "Agotada" },
-  { value: "suspendida", label: "Suspendida" },
+  { value: "Disponible", label: "Disponible" },
+  { value: "No Disponible", label: "Agotada" },
+  { value: "No Disponible", label: "Suspendida" },
 ];
 
 export const createEntrada = (entrada = {}) => ({
@@ -41,7 +36,7 @@ export const createEntrada = (entrada = {}) => ({
     entrada?.cantidad !== undefined && entrada?.cantidad !== null
       ? String(entrada.cantidad)
       : "",
-  estado: entrada?.estado ?? "disponible",
+  estado: entrada?.estado ?? "Disponible",
 });
 
 const joinArtistasExtras = (artistas = []) =>
@@ -164,4 +159,3 @@ export const buildSubmissionArtifacts = (formData, isEditing) => {
 
   return { payload, submissionPayload };
 };
-

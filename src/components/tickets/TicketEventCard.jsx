@@ -41,7 +41,7 @@ const getTicketStats = (entradas) => {
 
   const disponibles = entradas.filter(
     (entrada) =>
-      entrada?.estado === "disponible" &&
+      entrada?.estado === "Disponible" &&
       Number.parseInt(entrada?.cantidad, 10) > 0
   );
 

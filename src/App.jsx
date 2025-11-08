@@ -22,6 +22,9 @@ import { ReactionsProvider } from "@/contexts/ReactionsContext";
 import { EventProvider } from "@/contexts/EventContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
+import { initMercadoPago } from "@mercadopago/sdk-react";
+
+initMercadoPago("APP_USR-736d9ff3-20be-4ca5-bbb9-244377d549f7");
 
 export default function App() {
   return (
@@ -33,140 +36,140 @@ export default function App() {
               <div className="flex min-h-dvh w-full flex-col">
                 <Router>
                   <Routes>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
-                  <Route
-                    path="/home"
-                    element={
-                      <ProtectedRoute>
-                        <HomePage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/perfil"
-                    element={
-                      <ProtectedRoute>
-                        <ProfilePage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/gestion-usuarios"
-                    element={
-                      <ProtectedRoute>
-                        <UserManagementPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/eventos"
-                    element={
-                      <ProtectedRoute>
-                        <EventsManagement />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route
+                      path="/home"
+                      element={
+                        <ProtectedRoute>
+                          <HomePage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/perfil"
+                      element={
+                        <ProtectedRoute>
+                          <ProfilePage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/gestion-usuarios"
+                      element={
+                        <ProtectedRoute>
+                          <UserManagementPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/eventos"
+                      element={
+                        <ProtectedRoute>
+                          <EventsManagement />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/entradas"
-                    element={
-                      <ProtectedRoute>
-                        <TicketsListPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/entradas"
+                      element={
+                        <ProtectedRoute>
+                          <TicketsListPage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/entradas/:eventSlug"
-                    element={
-                      <ProtectedRoute>
-                        <TicketDetailPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/entradas/:eventSlug"
+                      element={
+                        <ProtectedRoute>
+                          <TicketDetailPage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/noticias"
-                    element={
-                      <ProtectedRoute>
-                        <NewsPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/noticias"
+                      element={
+                        <ProtectedRoute>
+                          <NewsPage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/noticias/crear"
-                    element={
-                      <ProtectedRoute>
-                        <NewsCreatePage />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/noticias/crear"
+                      element={
+                        <ProtectedRoute>
+                          <NewsCreatePage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/noticias/:slug"
-                    element={
-                      <ProtectedRoute>
-                        <NewsDetailPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/noticias/:slug"
+                      element={
+                        <ProtectedRoute>
+                          <NewsDetailPage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/noticias/:slug/editar"
-                    element={
-                      <ProtectedRoute>
-                        <NewsEditPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/noticias/:slug/editar"
+                      element={
+                        <ProtectedRoute>
+                          <NewsEditPage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/eventos/:nombreEvento"
-                    element={
-                      <ProtectedRoute>
-                        <EventDetailsPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/eventos/:nombreEvento"
+                      element={
+                        <ProtectedRoute>
+                          <EventDetailsPage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/eventos/:eventId/editar"
-                    element={
-                      <ProtectedRoute>
-                        <EditarEvento />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/eventos/:eventId/editar"
+                      element={
+                        <ProtectedRoute>
+                          <EditarEvento />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/merch"
-                    element={
-                      <ProtectedRoute>
-                        <MerchListPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/merch"
+                      element={
+                        <ProtectedRoute>
+                          <MerchListPage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  <Route
-                    path="/merch/:slug"
-                    element={
-                      <ProtectedRoute>
-                        <ProductDetailPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/merch/:slug"
+                      element={
+                        <ProtectedRoute>
+                          <ProductDetailPage />
+                        </ProtectedRoute>
+                      }
+                    />
 
-                  {/* <Route path="/noticias" element={<ProtectedRoute></ProtectedRoute>} /> */}
-                </Routes>
-              </Router>
-            </div>
-          </ReactionsProvider>
-        </NewsProvider>
-      </EventProvider>
-    </NotificationsProvider>
-  </UserProvider>
+                    {/* <Route path="/noticias" element={<ProtectedRoute></ProtectedRoute>} /> */}
+                  </Routes>
+                </Router>
+              </div>
+            </ReactionsProvider>
+          </NewsProvider>
+        </EventProvider>
+      </NotificationsProvider>
+    </UserProvider>
   );
 }

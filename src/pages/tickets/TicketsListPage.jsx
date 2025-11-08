@@ -54,7 +54,7 @@ const hasAvailableTickets = (entradas) => {
     return false;
   }
   return entradas.some((entrada) => {
-    if (entrada?.estado !== "disponible") {
+    if (entrada?.estado !== "Disponible") {
       return false;
     }
     const cantidad = Number.parseInt(entrada?.cantidad, 10);
