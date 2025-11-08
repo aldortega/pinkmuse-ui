@@ -54,7 +54,7 @@ const hasAvailableTickets = (entradas) => {
     return false;
   }
   return entradas.some((entrada) => {
-    if (entrada?.estado !== "disponible") {
+    if (entrada?.estado !== "Disponible") {
       return false;
     }
     const cantidad = Number.parseInt(entrada?.cantidad, 10);
@@ -63,7 +63,12 @@ const hasAvailableTickets = (entradas) => {
 };
 
 const normalizeText = (value) =>
-  typeof value === "string" ? value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+  typeof value === "string"
+    ? value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+    : "";
 
 const buildSearchTarget = (event) => {
   const parts = [
