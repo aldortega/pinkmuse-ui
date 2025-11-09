@@ -124,9 +124,7 @@ export default function GeneralInfoSection({
             id="imagenPrincipal"
           />
           {isUploadingImage && (
-            <span className="text-sm text-slate-600">
-              Subiendo imagen...
-            </span>
+            <span className="text-sm text-slate-600">Subiendo imagen...</span>
           )}
         </div>
         {storagePath && (
@@ -163,11 +161,6 @@ export default function GeneralInfoSection({
             />
           </div>
         )}
-        <p className="text-xs text-slate-500">
-          Al subir la imagen guardamos la ruta relativa dentro de
-          <code className="ml-1">storage/app/public/imagenes/eventos</code>.
-          Esa misma ruta se usa para mostrar la imagen en el sitio.
-        </p>
       </div>
     </section>
   );

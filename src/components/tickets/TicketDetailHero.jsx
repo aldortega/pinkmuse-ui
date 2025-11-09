@@ -107,9 +107,7 @@ export default function TicketDetailHero({ event }) {
 
           <div className="rounded-2xl bg-white/15 p-6">
             <p className="text-sm text-white/80">
-              Elegí tu tipo de entrada para continuar con la compra. La
-              disponibilidad se sincroniza directamente con la gestión de
-              eventos, sin acciones manuales.
+              Elegí tu tipo de entrada para continuar con la compra.
             </p>
           </div>
         </div>

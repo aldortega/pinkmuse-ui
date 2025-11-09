@@ -3,7 +3,7 @@ import { useNews } from "@/contexts/NewsContext";
 
 import NewsCard from "./NewsCard";
 
-const MAX_ITEMS = 3;
+const MAX_ITEMS = 5;
 
 export default function NewsUpdates() {
   const { news, loading, error } = useNews();
@@ -13,17 +13,12 @@ export default function NewsUpdates() {
   return (
     <section className="py-16">
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-        <div className="mb-10 flex flex-col items-start gap-3 sm:mb-12 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <Link to="/noticias">
-              <h2 className="text-3xl font-bold text-slate-800  hover:text-red-400 transition-colors">
-                Ultimas noticias
-              </h2>
-            </Link>
-            <p className="text-sm text-slate-600">
-              Enterate de lo mas reciente en lanzamientos y novedades.
-            </p>
-          </div>
+        <div className="mb-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Link to="/noticias">
+            <h2 className="text-3xl font-bold text-slate-800 transition-colors hover:text-red-400">
+              Mantente al dia
+            </h2>
+          </Link>
         </div>
 
         {loading && (

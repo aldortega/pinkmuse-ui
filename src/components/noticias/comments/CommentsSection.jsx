@@ -177,13 +177,13 @@ function CommentCard({ comment, onDelete, canDelete, isDeleting }) {
               paragraphs.map((line, index) => (
                 <p
                   key={`${comment.id}-line-${index}`}
-                  className="text-sm leading-6 text-slate-700"
+                  className="text-sm leading-6 text-slate-700 break-all"
                 >
                   {line}
                 </p>
               ))
             ) : (
-              <p className="text-sm leading-6 text-slate-700">
+              <p className="text-sm leading-6 text-slate-700 break-all">
                 {comment?.text}
               </p>
             )}

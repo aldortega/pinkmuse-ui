@@ -83,6 +83,36 @@ export async function uploadEventImage(file, nombre) {
   return result[0];
 }
 
+export function resolveImagePath(value) {
+  if (!value) {
+    return "";
+  }
+  if (typeof value === "string") {
+    return value.trim();
+  }
+  if (Array.isArray(value) && value.length > 0) {
+    return resolveImagePath(value[0]);
+  }
+  if (typeof value === "object") {
+    const candidates = [value.webp, value.png, value.path, value.url];
+    for (const entry of candidates) {
+      if (typeof entry === "string" && entry.trim()) {
+        return entry.trim();
+      }
+    }
+  }
+  return "";
+}
+
+export async function uploadNewsImage(file, nombre) {
+  const result = await uploadImage({ file, tipo: "noticia", nombre });
+  if (!result || !Array.isArray(result) || result.length === 0) {
+    return null;
+  }
+  const path = resolveImagePath(result[0]);
+  return path || null;
+}
+
 function normalizePath(path) {
   if (!path) {
     return "";

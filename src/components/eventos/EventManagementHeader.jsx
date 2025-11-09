@@ -26,9 +26,11 @@ export function EventManagementHeader({
           <CalendarDays className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Gestion de eventos</h1>
+          <h1 className="text-2xl font-bold text-slate-800">
+            Calendario de eventos
+          </h1>
           <p className="text-slate-700">
-            Administra fechas, ubicaciones y disponibilidad de entradas.
+            Consultá fechas, ubicaciones y disponibilidad de entradas.
           </p>
         </div>
       </div>
@@ -45,13 +47,21 @@ export function EventManagementHeader({
         </DialogTrigger>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-scroll no-scrollbar bg-red-50">
           <DialogHeader>
-            <DialogTitle className="text-slate-800">Crea un nuevo evento</DialogTitle>
+            <DialogTitle className="text-slate-800">
+              Crea un nuevo evento
+            </DialogTitle>
             <DialogDescription className="text-slate-600">
-              Anade un nuevo evento a tu agenda. Completa todos los datos a continuacion.
+              Anade un nuevo evento a tu agenda. Completa todos los datos a
+              continuacion.
             </DialogDescription>
           </DialogHeader>
-          {createError && <p className="text-sm text-destructive">{createError}</p>}
-          <EventForm onSubmit={onSubmitCreate} isSubmitting={isCreateSubmitting} />
+          {createError && (
+            <p className="text-sm text-destructive">{createError}</p>
+          )}
+          <EventForm
+            onSubmit={onSubmitCreate}
+            isSubmitting={isCreateSubmitting}
+          />
         </DialogContent>
       </Dialog>
     </div>

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Music } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 
 export default function WelcomeSection() {
@@ -22,11 +23,12 @@ export default function WelcomeSection() {
   }, [user]);
 
   return (
-    <section className="py-8">
+    <section className="relative overflow-hidden py-8">
+      <Music className="absolute -right-4 -top-4 h-32 w-32 text-red-50 opacity-80" />
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
         <h1 className="text-center text-3xl font-bold text-slate-800 text-balance sm:text-left">
           Hola{" "}
-          <span className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 text-transparent bg-clip-text">
+          <span className="bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent">
             {nombre}
           </span>
         </h1>

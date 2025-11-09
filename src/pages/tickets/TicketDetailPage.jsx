@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Wallet } from "@mercadopago/sdk-react";
 import Header from "@/components/home/Header";
 import Footer from "@/components/landing/Footer";
 import TicketDetailHero from "@/components/tickets/TicketDetailHero";
@@ -8,8 +9,23 @@ import TicketSelectionSummary from "@/components/tickets/TicketSelectionSummary"
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, Loader2, RefreshCcw } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  RefreshCcw,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import { useEvents } from "@/contexts/EventContext";
+import {
+  CrearPreferenciaMercadoPago,
+  procesarPagoYCrearComprobante,
+} from "@/services/mercadopago";
+
+const parsePrecio = (value) => {
+  const parsed = Number.parseFloat(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
 
 export default function TicketDetailPage() {
   const params = useParams();
@@ -26,8 +42,11 @@ export default function TicketDetailPage() {
 
   const [quantities, setQuantities] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [statusMessage, setStatusMessage] = useState(null);
-  const [statusDescription, setStatusDescription] = useState(null);
+  const [preferenceId, setPreferenceId] = useState(null);
+  const [paymentError, setPaymentError] = useState(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [comprobante, setComprobante] = useState(null);
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   const timeoutRef = useRef(null);
   const didRefetch = useRef(false);
@@ -38,8 +57,10 @@ export default function TicketDetailPage() {
     } else {
       setQuantities([]);
     }
-    setStatusMessage(null);
-    setStatusDescription(null);
+    setPreferenceId(null);
+    setPaymentError(null);
+    setPaymentSuccess(false);
+    setComprobante(null);
   }, [event]);
 
   useEffect(() => {
@@ -57,39 +78,141 @@ export default function TicketDetailPage() {
     };
   }, []);
 
+  // Calcular items para MercadoPago
+  const mpItems = useMemo(() => {
+    if (!event?.entradas) return [];
+
+    const items = [];
+    event.entradas.forEach((ticket, index) => {
+      const quantity = quantities[index] ?? 0;
+      if (quantity <= 0) return;
+
+      const priceUnit = parsePrecio(ticket?.precio);
+
+      items.push({
+        title: ticket?.tipo || `Entrada ${index + 1}`,
+        quantity: quantity,
+        unit_price: priceUnit,
+        id: event._id,
+      });
+    });
+
+    return items;
+  }, [event, quantities]);
+
+  const totalTickets = useMemo(() => {
+    return quantities.reduce((sum, qty) => sum + (qty || 0), 0);
+  }, [quantities]);
+
   const handleQuantityChange = useCallback((index, value) => {
     setQuantities((prev) => {
       const next = [...prev];
       next[index] = value;
       return next;
     });
+    setPreferenceId(null);
+    setPaymentError(null);
+    setPaymentSuccess(false);
   }, []);
 
   const handleClearSelection = useCallback(() => {
     setQuantities((prev) => prev.map(() => 0));
-    setStatusMessage(null);
-    setStatusDescription(null);
+    setPreferenceId(null);
+    setPaymentError(null);
+    setPaymentSuccess(false);
+    setComprobante(null);
   }, []);
 
-  const handleProceed = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+  const handleProceed = useCallback(async () => {
+    if (totalTickets === 0 || mpItems.length === 0) return;
+
     setIsProcessing(true);
-    setStatusMessage(null);
-    setStatusDescription(null);
-    timeoutRef.current = setTimeout(() => {
-      setIsProcessing(false);
-      setStatusMessage("¡Selección registrada!");
-      setStatusDescription(
-        "Guardamos tu selección localmente. En cuanto activemos la pasarela de pago vas a poder completar la compra."
+    setPaymentError(null);
+
+    try {
+      // ✅ Guardar con referencia_id incluido
+      localStorage.setItem(
+        "mp_items",
+        JSON.stringify(
+          mpItems.map((item) => ({
+            tipoReferencia: "evento",
+            referencia_id: item.id, // ✅ Esto es crítico
+            cantidad: item.quantity,
+            tipoEntrada: item.title,
+          }))
+        )
       );
-    }, 900);
-  }, []);
+
+      const response = await CrearPreferenciaMercadoPago(mpItems, event?._id);
+
+      if (response?.success && response?.preference_id) {
+        localStorage.setItem("mp_preference_id", response.preference_id);
+        localStorage.setItem("mp_event_id", event?._id);
+
+        setPreferenceId(response.preference_id);
+      } else {
+        throw new Error(
+          response?.message || "No se recibió el ID de preferencia"
+        );
+      }
+    } catch (err) {
+      console.error("Error al crear la preferencia:", err);
+      setPaymentError(err.message || "Ocurrió un error al preparar el pago");
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [totalTickets, mpItems, event]);
 
   const handleBack = useCallback(() => {
     navigate("/entradas");
   }, [navigate]);
+
+  // Función para procesar el pago después de que se complete en MP
+  const procesarPagoCompleto = useCallback(async (paymentId) => {
+    setProcessingPayment(true);
+    setPaymentError(null);
+
+    try {
+      // const usuario_id = localStorage.getItem("user_id");
+      const productos = JSON.parse(localStorage.getItem("mp_items") || "[]");
+
+      // if (!usuario_id) {
+      //   throw new Error("No se encontró el ID del usuario autenticado");
+      // }
+
+      if (!paymentId) {
+        throw new Error("No se encontró el ID de pago");
+      }
+
+      if (productos.length === 0) {
+        throw new Error("No hay productos para generar el comprobante");
+      }
+
+      const result = await procesarPagoYCrearComprobante({
+        payment_id: paymentId,
+        productos,
+        // usuario_id,
+      });
+
+      if (result.success) {
+        setPaymentSuccess(true);
+        setComprobante(result.data);
+
+        localStorage.removeItem("mp_items");
+        localStorage.removeItem("mp_preference_id");
+
+        setQuantities((prev) => prev.map(() => 0));
+        setPreferenceId(null);
+      } else {
+        throw new Error(result.message || "Error al crear el comprobante");
+      }
+    } catch (err) {
+      console.error("Error al procesar pago:", err);
+      setPaymentError(err.message);
+    } finally {
+      setProcessingPayment(false);
+    }
+  }, []);
 
   const showLoading = loading && !event;
   const showError = !loading && error;
@@ -115,7 +238,9 @@ export default function TicketDetailPage() {
           <Card className="bg-red-50">
             <CardContent className="flex flex-col items-center gap-3 py-12">
               <Loader2 className="h-6 w-6 animate-spin text-red-400" />
-              <p className="text-slate-700">Cargando información del evento...</p>
+              <p className="text-slate-700">
+                Cargando información del evento...
+              </p>
             </CardContent>
           </Card>
         ) : null}
@@ -165,16 +290,40 @@ export default function TicketDetailPage() {
           <div className="space-y-8">
             <TicketDetailHero event={event} />
 
-            {statusMessage ? (
-              <Alert className="border-green-200 bg-green-50/80 text-slate-700">
-                <AlertTitle className="text-sm font-semibold text-slate-800">
-                  {statusMessage}
+            {paymentError ? (
+              <Alert className="border-red-300 bg-red-50">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <AlertTitle className="text-sm font-semibold text-red-800">
+                  Error al procesar
                 </AlertTitle>
-                {statusDescription ? (
-                  <AlertDescription className="text-xs text-slate-600">
-                    {statusDescription}
-                  </AlertDescription>
-                ) : null}
+                <AlertDescription className="text-xs text-red-700">
+                  {paymentError}
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
+            {paymentSuccess && comprobante ? (
+              <Alert className="border-green-300 bg-green-50">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertTitle className="text-sm font-semibold text-green-800">
+                  ¡Compra exitosa!
+                </AlertTitle>
+                <AlertDescription className="text-xs text-green-700">
+                  Tu comprobante {comprobante.data?.numeroComprobante} ha sido
+                  generado correctamente.
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
+            {processingPayment ? (
+              <Alert className="border-blue-300 bg-blue-50">
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                <AlertTitle className="text-sm font-semibold text-blue-800">
+                  Procesando tu pago...
+                </AlertTitle>
+                <AlertDescription className="text-xs text-blue-700">
+                  Estamos generando tu comprobante, por favor espera.
+                </AlertDescription>
               </Alert>
             ) : null}
 
@@ -193,10 +342,91 @@ export default function TicketDetailPage() {
                 isProcessing={isProcessing}
               />
             </div>
+
+            {preferenceId && !paymentSuccess && (
+              <Card className="border-green-200 bg-green-50/80">
+                <CardContent className="space-y-4 py-6">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-slate-800">
+                      ¡Todo listo para pagar!
+                    </h3>
+                    <p className="text-sm text-slate-600 mt-1">
+                      1. Hacé clic en el botón de Mercado Pago
+                      <br />
+                      2. Completá el pago
+                      <br />
+                      3. Copiá el ID de pago de la URL
+                      <br />
+                      4. Volvé aquí e ingresalo abajo
+                    </p>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <Wallet
+                      initialization={{ preferenceId: preferenceId }}
+                      customization={{
+                        texts: {
+                          valueProp: "security_safety",
+                        },
+                      }}
+                    />
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setPreferenceId(null);
+                      setPaymentSuccess(false);
+                    }}
+                    className="w-full border-slate-300 text-slate-700 hover:bg-slate-100"
+                  >
+                    Modificar selección
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="border-t pt-4 space-y-3">
+              <p className="text-sm text-slate-700 font-medium">
+                ¿Ya completaste el pago?
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Pega aquí el payment ID"
+                  className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  id="payment-id-input"
+                />
+                <Button
+                  onClick={() => {
+                    const input = document.getElementById("payment-id-input");
+                    const paymentId = input?.value?.trim();
+                    if (paymentId) {
+                      procesarPagoCompleto(paymentId);
+                      input.value = "";
+                    }
+                  }}
+                  disabled={processingPayment}
+                  className="bg-gradient-to-r from-rose-500 via-red-400 to-red-500 text-white hover:opacity-90"
+                >
+                  {processingPayment ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Procesando...
+                    </>
+                  ) : (
+                    "Confirmar pago"
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-slate-500">
+                El payment ID aparece en la URL después de pagar, ejemplo:
+                payment_id=<strong>1234567890</strong>
+              </p>
+            </div>
           </div>
         ) : null}
       </main>
-
       <Footer />
     </div>
   );

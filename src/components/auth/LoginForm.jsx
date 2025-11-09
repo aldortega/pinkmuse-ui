@@ -29,6 +29,7 @@ export default function LoginForm() {
       const { data } = await api.post("/login", { correo: email, password });
       if (data?.token) {
         localStorage.setItem("authToken", data.token);
+        localStorage.setItem("user_id", data.user.id);
         if (data.user) {
           setUser(data.user);
         } else {

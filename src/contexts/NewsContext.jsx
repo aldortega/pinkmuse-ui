@@ -1,8 +1,48 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import api from "@/lib/axios";
 import { useUser } from "@/contexts/UserContext";
+import { buildImageUrl } from "@/lib/imageService";
 
 const NewsContext = createContext(null);
+
+const buildNewsFormData = (input, { isUpdate = false } = {}) => {
+  const formData = new FormData();
+
+  if (!isUpdate) {
+    formData.append("tipoActividad", "noticia");
+    formData.append("titulo", input.titulo.trim());
+  }
+
+  formData.append("descripcion", input.descripcion.trim());
+  formData.append("fecha", input.fecha ? new Date(input.fecha).toISOString() : null);
+  formData.append("habilitacionComentarios", input.habilitacionComentarios ? "1" : "0");
+  formData.append("habilitacionAcciones", input.habilitacionAcciones ? "si" : "no");
+
+  if (input.resumen?.trim()) {
+    formData.append("resumen", input.resumen.trim());
+  }
+  if (input.autor?.trim()) {
+    formData.append("autor", input.autor.trim());
+  }
+  if (input.categoria?.trim()) {
+    formData.append("categoria", input.categoria.trim());
+  }
+  if (input.fuente?.trim()) {
+    formData.append("fuente", input.fuente.trim());
+  }
+
+  if (Array.isArray(input.etiquetas)) {
+    input.etiquetas.forEach((etiqueta, index) => {
+      formData.append(`etiquetas[${index}]`, etiqueta);
+    });
+  }
+
+  if (input.imagenPrincipal instanceof File) {
+    formData.append("imagenPrincipal", input.imagenPrincipal, input.imagenPrincipal.name);
+  }
+
+  return formData;
+};
 
 const formatDate = (value) => {
   if (!value) {
@@ -19,20 +59,22 @@ const formatDate = (value) => {
   }).format(parsed);
 };
 
-const normalizeNoticia = (noticia) => {
+export const normalizeNoticia = (noticia) => {
   if (!noticia?.titulo) {
     return null;
   }
 
   const slug = encodeURIComponent(noticia.titulo);
-  const image =
+  const image = buildImageUrl(
     noticia.imagenPrincipal ||
     (Array.isArray(noticia.imagenes) && noticia.imagenes.length > 0
       ? noticia.imagenes[0]
-      : undefined);
+      : undefined)
+  );
   const summary = noticia.resumen || noticia.descripcion;
 
   return {
+    ...noticia, // Keep original properties
     id: noticia._id || noticia.id || slug,
     slug,
     title: noticia.titulo,
@@ -182,7 +224,12 @@ export function NewsProvider({ children }) {
   const createArticle = useCallback(
     async (payload) => {
       try {
-        const response = await api.post("/noticias", payload);
+        const formData = buildNewsFormData(payload);
+        const response = await api.post("/noticias", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
         const created = response?.data?.data;
 
         if (created) {
@@ -206,9 +253,17 @@ export function NewsProvider({ children }) {
   const updateArticle = useCallback(
     async (currentTitle, payload) => {
       try {
-        const response = await api.put(
+        const formData = buildNewsFormData(payload, { isUpdate: true });
+        formData.append("_method", "PUT");
+
+        const response = await api.post(
           `/noticias/${encodeURIComponent(currentTitle)}`,
-          payload
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
         );
         const updated = response?.data?.data;
 

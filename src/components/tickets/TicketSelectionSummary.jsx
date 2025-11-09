@@ -1,7 +1,6 @@
 import { Fragment, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 
 const parsePrecio = (value) => {
@@ -109,7 +108,7 @@ export default function TicketSelectionSummary({
           type="button"
           disabled={totalTickets === 0 || isProcessing}
           onClick={onProceed}
-          className="cursor-pointer gap-2 bg-gradient-to-r from-rose-500 via-red-400 to-red-500 text-white hover:opacity-90"
+          className="cursor-pointer gap-2 bg-gradient-to-r from-rose-500 via-red-400 to-red-500 text-white hover:opacity-90 disabled:cursor-not-allowed"
         >
           {isProcessing ? (
             <>
@@ -126,21 +125,11 @@ export default function TicketSelectionSummary({
           type="button"
           disabled={totalTickets === 0 || isProcessing}
           onClick={onClear}
-          className="cursor-pointer border-red-200 text-slate-700 hover:bg-red-50"
+          className="cursor-pointer border-red-200 text-slate-700 hover:bg-red-50 disabled:cursor-not-allowed"
         >
           Limpiar selección
         </Button>
       </div>
-
-      <Alert className="border-red-200 bg-red-50/80 text-slate-700">
-        <AlertTitle className="text-sm font-semibold text-slate-800">
-          Próximamente
-        </AlertTitle>
-        <AlertDescription className="text-xs text-slate-600">
-          Estamos integrando el flujo de pago con el backend. Por ahora solo
-          podrás simular la selección de entradas y revisar los costos.
-        </AlertDescription>
-      </Alert>
     </aside>
   );
 }
