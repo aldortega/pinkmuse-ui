@@ -27,6 +27,8 @@ import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import { MerchProvider } from "@/contexts/MerchContext";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 
 export default function App() {
   return (
@@ -58,6 +60,11 @@ export default function App() {
                           </ProtectedRoute>
                         }
                       />
+
+                      <Route path="/terms" element={<TermsPage />} />
+
+                      <Route path="/privacy" element={<PrivacyPage />} />
+
                       <Route
                         path="/perfil"
                         element={
