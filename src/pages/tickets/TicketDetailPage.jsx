@@ -130,25 +130,29 @@ export default function TicketDetailPage() {
     setPaymentError(null);
 
     try {
-      // ✅ Guardar con referencia_id incluido
+      localStorage.setItem("mp_event_id", event._id);
       localStorage.setItem(
-        "mp_items",
+        "mp_selections",
         JSON.stringify(
           mpItems.map((item) => ({
-            tipoReferencia: "evento",
-            referencia_id: item.id, // ✅ Esto es crítico
-            cantidad: item.quantity,
             tipoEntrada: item.title,
+            cantidad: item.quantity,
           }))
         )
       );
 
-      const response = await CrearPreferenciaMercadoPago(mpItems, event?._id);
+      const response = await CrearPreferenciaMercadoPago({
+        items: mpItems.map((item) => ({
+          title: item.title,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+        })),
+        eventId: event._id,
+        eventName: event.nombreEvento || event.title || "Evento PinkMuse",
+      });
 
       if (response?.success && response?.preference_id) {
         localStorage.setItem("mp_preference_id", response.preference_id);
-        localStorage.setItem("mp_event_id", event?._id);
-
         setPreferenceId(response.preference_id);
       } else {
         throw new Error(
@@ -173,32 +177,41 @@ export default function TicketDetailPage() {
     setPaymentError(null);
 
     try {
-      // const usuario_id = localStorage.getItem("user_id");
-      const productos = JSON.parse(localStorage.getItem("mp_items") || "[]");
-
-      // if (!usuario_id) {
-      //   throw new Error("No se encontró el ID del usuario autenticado");
-      // }
+      const selections = JSON.parse(
+        localStorage.getItem("mp_selections") || "[]"
+      );
 
       if (!paymentId) {
         throw new Error("No se encontró el ID de pago");
       }
 
-      if (productos.length === 0) {
-        throw new Error("No hay productos para generar el comprobante");
-      }
+      // if (selections.length === 0) {
+      //   throw new Error(
+      //     "No se encontró información de la compra. Asegúrate de haber seleccionado entradas primero."
+      //   );
+      // }
+
+      // ✅ Enviar solo con tipoEntrada (identificación por nombre)
+      const productos = selections.map((sel) => ({
+        tipoReferencia: "evento",
+        cantidad: sel.cantidad,
+        tipoEntrada: sel.tipoEntrada,
+      }));
+
+      console.log("📤 Enviando productos:", productos);
 
       const result = await procesarPagoYCrearComprobante({
         payment_id: paymentId,
         productos,
-        // usuario_id,
       });
 
       if (result.success) {
         setPaymentSuccess(true);
         setComprobante(result.data);
 
-        localStorage.removeItem("mp_items");
+        // Limpiar localStorage
+        localStorage.removeItem("mp_event_id");
+        localStorage.removeItem("mp_selections");
         localStorage.removeItem("mp_preference_id");
 
         setQuantities((prev) => prev.map(() => 0));
@@ -390,6 +403,7 @@ export default function TicketDetailPage() {
               <p className="text-sm text-slate-700 font-medium">
                 ¿Ya completaste el pago?
               </p>
+
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -401,13 +415,17 @@ export default function TicketDetailPage() {
                   onClick={() => {
                     const input = document.getElementById("payment-id-input");
                     const paymentId = input?.value?.trim();
-                    if (paymentId) {
-                      procesarPagoCompleto(paymentId);
-                      input.value = "";
+
+                    if (!paymentId) {
+                      setPaymentError("Por favor ingresa el payment ID");
+                      return;
                     }
+
+                    procesarPagoCompleto(paymentId);
+                    input.value = "";
                   }}
                   disabled={processingPayment}
-                  className="bg-gradient-to-r from-rose-500 via-red-400 to-red-500 text-white hover:opacity-90"
+                  className="bg-gradient-to-r from-rose-500 via-red-400 to-red-500 text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {processingPayment ? (
                     <>
@@ -419,9 +437,10 @@ export default function TicketDetailPage() {
                   )}
                 </Button>
               </div>
+
               <p className="text-xs text-slate-500">
-                El payment ID aparece en la URL después de pagar, ejemplo:
-                payment_id=<strong>1234567890</strong>
+                El payment ID aparece en la parte superior acompañado de un '#'.
+                Ejemplo: #1234567890
               </p>
             </div>
           </div>

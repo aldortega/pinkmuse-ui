@@ -1,19 +1,29 @@
 const API_BASE = "http://localhost:8000/api";
 
 // Crear preferencia MP
-export async function CrearPreferenciaMercadoPago(items, eventId) {
+export async function CrearPreferenciaMercadoPago({
+  items,
+  eventId,
+  eventName,
+}) {
   try {
     const response = await fetch(`${API_BASE}/preferencias`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, event_id: eventId }),
+      body: JSON.stringify({
+        items,
+        event_id: eventId,
+        description: eventName,
+        metadata: {
+          event_name: eventName,
+        },
+      }),
     });
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error("Error creando preferencia:", error);
-    return { success: false, message: "Error de conexión con el servidor" };
+    console.error("Error al crear preferencia MP:", error);
+    throw error;
   }
 }
 
