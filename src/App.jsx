@@ -28,6 +28,11 @@ import { initMercadoPago } from "@mercadopago/sdk-react";
 
 initMercadoPago("APP_USR-736d9ff3-20be-4ca5-bbb9-244377d549f7");
 import { MerchProvider } from "@/contexts/MerchContext";
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import RedesPinkMuse from "@/pages/RedesPinkMuse";
 
 export default function App() {
   return (
@@ -44,6 +49,15 @@ export default function App() {
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/register" element={<RegisterPage />} />
                       <Route
+                        path="/forgotten"
+                        element={<ForgotPasswordPage />}
+                      />
+                      <Route
+                        path="/reset-password"
+                        element={<ResetPasswordPage />}
+                      />
+
+                      <Route
                         path="/home"
                         element={
                           <ProtectedRoute>
@@ -51,6 +65,13 @@ export default function App() {
                           </ProtectedRoute>
                         }
                       />
+
+                      <Route path="/redes" element={<RedesPinkMuse />} />
+
+                      <Route path="/terms" element={<TermsPage />} />
+
+                      <Route path="/privacy" element={<PrivacyPage />} />
+
                       <Route
                         path="/perfil"
                         element={

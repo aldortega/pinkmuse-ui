@@ -71,7 +71,7 @@ export default function TicketTypeList({
                       : "bg-green-100 text-green-700 hover:bg-green-100"
                   }
                 >
-                  {disabled ? "No disponible" : "Disponible"}
+                  {disabled ? "No Disponible" : "Disponible"}
                 </Badge>
               </div>
               <p className="flex items-center gap-2 text-sm text-slate-600">

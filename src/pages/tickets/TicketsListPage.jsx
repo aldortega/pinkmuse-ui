@@ -63,7 +63,12 @@ const hasAvailableTickets = (entradas) => {
 };
 
 const normalizeText = (value) =>
-  typeof value === "string" ? value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+  typeof value === "string"
+    ? value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+    : "";
 
 const buildSearchTarget = (event) => {
   const parts = [

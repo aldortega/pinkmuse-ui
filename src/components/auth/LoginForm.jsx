@@ -128,7 +128,7 @@ export default function LoginForm() {
                 <span className="text-gray-600 cursor-pointer">Recordarme</span>
               </label>
               <a
-                href="#"
+                href="/forgotten"
                 className="text-xs sm:text-sm font-semibold bg-gradient-to-br from-rose-500 via-red-400 to-red-500 bg-clip-text text-transparent hover:opacity-90 transition-colors"
               >
                 ¿Olvidaste tu contraseña?

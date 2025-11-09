@@ -6,21 +6,24 @@ export default function Footer() {
         <div className="flex flex-wrap items-center justify-center gap-4 md:justify-end">
           <a
             className="font-semibold transition-colors hover:bg-gradient-to-br hover:from-rose-500 hover:via-red-400 hover:to-red-600 hover:text-transparent hover:bg-clip-text"
-            href="#"
+            href="/terms"
+            target="_blank"
           >
             Terminos
           </a>
           <a
             className="font-semibold transition-colors hover:bg-gradient-to-br hover:from-rose-500 hover:via-red-400 hover:to-red-600 hover:text-transparent hover:bg-clip-text"
-            href="#"
+            href="/privacy"
+            target="_blank"
           >
             Privacidad
           </a>
           <a
             className="font-semibold transition-colors hover:bg-gradient-to-br hover:from-rose-500 hover:via-red-400 hover:to-red-600 hover:text-transparent hover:bg-clip-text"
-            href="#"
+            href="/redes"
+            target="_blank"
           >
-            Contacto
+            Redes
           </a>
         </div>
       </div>

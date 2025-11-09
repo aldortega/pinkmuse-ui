@@ -59,7 +59,7 @@ export const buildInitialState = (data) => {
     nombreLugar: data?.nombreLugar ?? data?.location ?? "",
     fecha: data?.fecha ?? data?.date ?? "",
     hora: data?.hora ?? data?.time ?? "",
-    estado: data?.estado ?? data?.status ?? "programado",
+    estado: data?.estado ?? data?.status ?? "Activo",
     imagenPrincipal,
     direccion: {
       calle: direccion?.calle ?? "",
