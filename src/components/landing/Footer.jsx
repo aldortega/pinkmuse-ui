@@ -20,9 +20,10 @@ export default function Footer() {
           </a>
           <a
             className="font-semibold transition-colors hover:bg-gradient-to-br hover:from-rose-500 hover:via-red-400 hover:to-red-600 hover:text-transparent hover:bg-clip-text"
-            href="#"
+            href="/redes"
+            target="_blank"
           >
-            Contacto
+            Redes
           </a>
         </div>
       </div>

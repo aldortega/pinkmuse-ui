@@ -29,6 +29,7 @@ import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import RedesPinkMuse from "@/pages/RedesPinkMuse";
 
 export default function App() {
   return (
@@ -52,6 +53,7 @@ export default function App() {
                         path="/reset-password"
                         element={<ResetPasswordPage />}
                       />
+
                       <Route
                         path="/home"
                         element={
@@ -60,6 +62,8 @@ export default function App() {
                           </ProtectedRoute>
                         }
                       />
+
+                      <Route path="/redes" element={<RedesPinkMuse />} />
 
                       <Route path="/terms" element={<TermsPage />} />
 
